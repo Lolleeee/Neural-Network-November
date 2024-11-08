@@ -41,4 +41,5 @@ Participants in this competition must adhere to the following rules:
 - Evaluation: The evaluation criteria are defined by the course tutors and professors. The decisions made by them regarding the results, validity, and any concerns during the competition are final and binding.
 - Discretion: Course tutors and professors reserve the right to make decisions regarding any aspect of the competition, including but not limited to the evaluation process and the interpretation of rules.
 - Integrity: Participants are expected to maintain academic integrity and professionalism throughout the competition.
+
 By participating, entrants agree to these terms and acknowledge that all decisions by the course tutors and professors are final.
