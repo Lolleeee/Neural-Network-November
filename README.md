@@ -12,14 +12,14 @@ This is a multi-class classification problem, so our goal is to assign the corre
 This dataset consists of images designed for the classification of different types of blood cells. 
 Each image is labeled with one of eight classes, representing various blood cell types such as basophils, neutrophils, and lymphocytes.
 
-** Dataset details **
+**Dataset details**
 - Image Size: 96x96
 - Color Space: RGB (3 channels)
 - Input Shape: (96, 96, 3)
 - File Format: npz (Numpy archive)
 - Number of Classes: 8
 
-** Class Labels **
+**Class Labels**
 - 0: Basophil
 - 1: Eosinophil
 - 2: Erythroblast
@@ -29,7 +29,7 @@ Each image is labeled with one of eight classes, representing various blood cell
 - 6: Neutrophil
 - 7: Platelet
 
-** Dataset Structure **
+**Dataset Structure**
 The training data is provided in the train_data.npz file, which contains:
 - images: A Numpy array of shape (13759, 96, 96, 3) containing the RGB images.
 - labels: A Numpy array of shape (13759,), with class values ranging from 0 to 7, corresponding to the classes listed above.
