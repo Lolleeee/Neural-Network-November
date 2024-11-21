@@ -12,12 +12,17 @@
 \section{Abstract}
 The challenge involves developing a neural network model for binary classification on a dataset of blood cell images. Our initial step was to inspect the dataset to understand the nature of the images we would be working with. During this process, we identified and removed several outlier images to ensure the quality and consistency of the data. We also notice that the number of images per classes was not equal so we manage to augment the classes to make the dataset balanced. Given our initial lack of experience with image classification tasks, we decided to approach the problem using transfer learning with a pre-trained model. To balance computational efficiency and accuracy, we selected MobileNetV2, a model known for its favorable trade-off between parameter count and accuracy, as the foundation for our experiments. Later, we selected other models that were better suited to our purpose, incorporating fine-tuning to further enhance our performance.
 
-\section{Operations on dataset and augmentation}
+\section{Operations on dataset}
+The dataset consists of images designed for the classification of different types of blood cells. Each image is labeled with one of eight classes, representing various blood cell types such as Basophil, Eosinophil, Erythroblast,  Immature granulocytes, Lymphocyte, Monocyte, Neutrophil and Platelet. Image size is 96x96, color space RGB 3 channels.
 \subsection{Data cleaning}
+TODO: LOLLI
 \subsection{Data augmentation}
+TODO: KEKKO-LOLLI
 \subsection{Data split}
+TODO: KEKKO-LOLLI
 
 \section{First network models and experiments}
+
 \subsection{Hyperparameters}
 \subsection{Preprocessing data}
 \subsection{Model structure}
@@ -26,11 +31,45 @@ The challenge involves developing a neural network model for binary classificati
 
 \section{Comparison between the models}
 \subsection{Used models}
-\subsection{Final model}
+BETTI:
+\begin{itemize}
+    \item MobileNetV2
+    \item EfficientNetB4
+    \item EfficientNetV2S
+    \item EfficientNetV2M
+    \item ConvNeXtTiny
+\end{itemize}
+KEKKO:
+\begin{itemize}
+    \item ConvNeXtTiny
+    \item ConvNeXtSmall
+    \item DenseNet201
+\end{itemize}
+LOLLI:
+\begin{itemize}
+    \item MobileNetV2
+    \item EfficientNetV2M
+\end{itemize}
+!!DA FARE IL MERGE DEI MODELLI IN COMUNE IN MODO CHE LI SCRIVIAMO UNA VOLTA SOLA!!
 \subsection{Comparison Overview}
 \subsection{Hyperparameter tuning}
 
+
+\section{Final model}
+ConvNeXtSmall
+
+
 \section{Contributions}
+
+All the members of the team contributed equally to the project. Here is a list of the features that each member contributed the most to:
+\begin{itemize}
+    \item Betti the setter, betti the trainer.
+    \item Lolli the cleaner, lolli the homeworker.
+    \item Kello the augmenter, kello the trainer.
+\end{itemize}
+
+
+
 
 \section{References}
 
