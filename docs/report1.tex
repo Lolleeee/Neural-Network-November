@@ -61,18 +61,40 @@
 
 The challenge involves developing a neural network model for multiclass classification on a dataset of blood cell images.
 
-Our initial approach was to inspect the dataset to understand the nature of the images we would be working with. During this process, we identified and removed several outlier images, to ensure the quality and consistency of data. We also noticed that the number of images per class was not equal, therefore we exploited augmentation in order to make the dataset classes balanced.
+Our initial approach was to inspect the dataset to understand the nature of the images we would be working with. 
+During this process, we identified and removed several outlier images, to ensure the quality and consistency of data. 
+We also noticed that the number of images per class was not equal, therefore we exploited augmentation in order to make the dataset classes balanced.
 
-Given the relatively small size of the dataset given, we decided to initially approach the problem using transfer learning with a pre-trained model. To balance computational efficiency and accuracy, we selected \textit{MobileNetV2}, a model known for its favorable trade-off between parameter count and accuracy, as the foundation for our experiments. Eventually, we selected other models that were better suited to our purpose, incorporating fine-tuning to further enhance our performance.
+Given the relatively small size of the dataset given, we decided to initially approach the problem using transfer learning with a pre-trained model.
+To balance computational efficiency and accuracy, we selected \textit{MobileNetV2}, a model known for its favorable trade-off between parameter count and accuracy, as the foundation for our experiments.
+Eventually, we selected other models that were better suited to our purpose, incorporating fine-tuning to further enhance our performance.
 
 \section{Operations on dataset}
-The raw dataset consists of total of 13759 images designed for the classification of different types of blood cells. Each image is labeled with one of eight classes, representing various blood cell types: Basophil, Eosinophil, Erythroblast,  Immature granulocytes, Lymphocyte, Monocyte, Neutrophil and Platelet.
+The raw dataset consists of total of 13759 images designed for the classification of different types of blood cells. Each image is labeled with one of eight classes, representing various blood cell types: Basophil, Eosinophil, Erythroblast, Immature granulocytes, Lymphocyte, Monocyte, Neutrophil and Platelet.
 
 Images size is 96x96, color space is RGB (3 channels), with \textit{uint8} data type.
 
 \subsection{Exploratory Data Analysis}
 
-The first step in a good machine learning pipeline is exploratory data analysis (EDA). To perform EDA, we plotted a grid sorted by class, which allowed us to identify two types of outliers. The first was a repeated image containing a watermark of Shrek that appeared across multiple classes. The second was a repeated image featuring a watermark of Rickroll in the Monocyte class. Both outliers were easily removed, as they were identical images repeated without variations, making them straightforward to detect.
+The first step in a good machine learning pipeline is exploratory data analysis (EDA).
+To perform EDA, we plotted a grid sorted by class, which allowed us to identify two types of outliers.
+The first was a repeated image containing a watermark of Shrek that appeared across multiple classes. 
+The second was a repeated image featuring a watermark of Rickroll in the Monocyte class.
+Both outliers were easily removed, as they were identical images repeated without variations, making them straightforward to detect.
+Those images are shown here below.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.2\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/outlier1.png}
+    \end{minipage}
+    \hspace{2cm}
+    \begin{minipage}{0.2\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/outlier2.png}
+    \end{minipage}
+\end{figure}
 
 An analysis of class distribution revealed a mildly severe class imbalance. To address this issue, we employed image duplication and data augmentation to ensure more balanced representation across classes.
 
@@ -93,7 +115,7 @@ Additionally, we identified some ambiguously labeled images, such as the ones he
 
 \subsection{Data augmentation}
 
-During the project data augmentation has been a paramount stage which influenced greatly the performance of the model. The progressive refinement of the pipeline lead to 3 main iterations of data augmentation pipeline.
+Data augmentation has been a paramount stage which influenced greatly the performance of the model. The progressive refinement of the pipeline lead to 3 main iterations of data augmentation pipeline.
 All of which handled class unbalance and performed data splitting either by custom functions or using \textit{train\_test\_split} by \textit{scikit\-learn}
 
 The first one was done by kello so I dont know what he'd done.
@@ -108,7 +130,7 @@ This approach made the augmentation process dynamic rather than static, as augme
 Each team member began by selecting a pre-trained model, adjusting hyperparameters like learning rate and batch size, and getting a feel of the complexity of the task.
 Starting with relatively small models like MobileNet to leverage fast training and less overfitting risk given the small dataset. 
 Following this initial setup, we proceeded to design the top layers architecture. Overall, While the specific structures varied slightly between attempts, the core design remained consistent: place the pre-trained model after the input layer, followed by a \textit{GlobalAveragePooling2D} layer, followed by a normalization and dropout layer, after which 2 blocks of \textit{Dense-Normalization-Dropout} layers where used to get finally to the output layer of 8 neurons for the 8 labels.
-CIAOOOOOO
+
 \subsection{Hyperparameters}
 Hyperparameter have been changed a lot during the development phase, here we are just gonna put the most used. In the \hyperref[hyperparametertuning]{Hyperparameter Tuning} you can find all the values used and how their change affected our models.
 Here instead the most used ones:\\
