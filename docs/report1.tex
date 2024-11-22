@@ -17,7 +17,7 @@
 \geometry{margin=2cm}
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue,
+    linkcolor=darkgray,
     urlcolor=blue,
     citecolor=blue,
     pdfborder={0 0 0}
@@ -70,7 +70,7 @@ During this process, we identified and removed several outlier images, to ensure
 We also noticed that the number of images per class was not equal, therefore we exploited augmentation in order to make the dataset classes balanced.
 
 Given the relatively small size of the dataset given, we decided to initially approach the problem using transfer learning with a pre-trained model.
-To balance computational efficiency and accuracy, we selected \textit{MobileNetV2}, a model known for its favorable trade-off between parameter count and accuracy, as the foundation for our experiments.
+To balance computational efficiency and accuracy, we firstly selected small base models.
 Eventually, we selected other models that were better suited to our purpose, incorporating fine-tuning to further enhance our performance.
 
 \section{Operations on dataset}
@@ -148,7 +148,8 @@ Each image was augmented multiple times to reach the quota of 2,500 elements per
 
 \subsubsection{Static augmentation}
 
-The second round utilized additional functions to achieve a higher level of augmentation. The following functions were used:
+The second round utilized additional functions to achieve a higher level of augmentation. 
+The following functions were used:
 
 \begin{itemize}
     \item random blur;
@@ -156,15 +157,15 @@ The second round utilized additional functions to achieve a higher level of augm
     \item random rotation;
     \item random brightness;
     \item random hue;
-    \item auto contrast;
-    \item aug mix;
-    \item grid mask;
+    \item random contrast;
+    \item random grid mask;
     \item random color degeneration;
     \item random cutout;
     \item random saturation;
-    \item random dhear.
+    \item random shear.
 \end{itemize}
 
+A random selection of a random size of functions, each with a random intensity, was applied on each augmented image.
 Original images were excluded from the dataset at this stage. 
 Each image was augmented as many times as to reach 3,000 elements per class.
 
@@ -176,108 +177,136 @@ Additionally, the number of elements per class was increased to 5,000.
 The third approach, which was ultimately used in the final submission model, began by balancing the label distribution.
 This was achieved by duplicating the underrepresented classes just enough to match the number of samples in the largest class.
 The entire dataset was then split and fed into a \textit{TensorFlow Dataset}, which managed the batch size, shuffling, and mapping of the augmentation pipeline.
+% FIXME lolly che vor di "TensorFlow Datasets"
 
 This approach made the augmentation process dynamic rather than static, as augmentations were applied in real-time during runtime. 
 By handling augmentations dynamically, the model was exposed to a broader variety of augmented samples, enhancing generalization and reducing the risk of overfitting.
 However, this method was adopted only as a last resort, as it significantly slowed down the training process, even though it was a necessary step to achieve the final performance.
 
-\section{First network models and experiments}
-Each team member began by selecting a pre-trained model, adjusting hyperparameters like learning rate and batch size, and getting a feel of the complexity of the task.
-Starting with relatively small models like MobileNet to leverage fast training and less overfitting risk given the small dataset. 
-Following this initial setup, we proceeded to design the top layers architecture. Overall, While the specific structures varied slightly between attempts, the core design remained consistent: place the pre-trained model after the input layer, followed by a \textit{GlobalAveragePooling2D} layer, followed by a normalization and dropout layer, after which 2 blocks of \textit{Dense-Normalization-Dropout} layers where used to get finally to the output layer of 8 neurons for the 8 labels.
+\subsection{Preprocessing data}
 
-\subsection{Hyperparameters}
-Hyperparameter have been changed a lot during the development phase, here we are just gonna put the most used. In the \hyperref[hyperparametertuning]{Hyperparameter Tuning} you can find all the values used and how their change affected our models.
-Here instead the most used ones:\\
-\begin{table}[h!]
-\centering
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Phase} & \textbf{Top Layers Training} & \textbf{Fine Tuning} \\ \hline
-Learning Rate & 1e-4 & 1e-5 \\ \hline
-Weight Decay & 1e-3 & 1e-3 \\ \hline
-Epochs & 10 & 20 \\ \hline
-Batch Size & 32 & 64 \\ \hline
-\end{tabular}
-\caption{Most used hyperparameters in training}
-\end{table}
-\subsection{Preprocessing data (decidere dove metterlo)}
-All the pre-trained models we selected come with an already implemented data preprocessing phase. For our work, we utilized the \textit{class\_weight} function to adjust the weights when the dataset was unbalanced. However, after performing data augmentation to balance the classes, we no longer needed to use this function.
-\subsection{Model structure}
-The model structure has also being change during the development phase.
-Here you will find a scheme of the most used setup:
-\begin{table}[h!]
-\centering
-\begin{tabular}{|c|}
-\hline
-\textbf{Layer (type)} \\ \hline
-Input (InputLayer)\\ \hline
-\textit{base\_model} (Functional)\\ \hline
-GAP (GlobalAveradgePooling2D)\\ \hline
-Hidden (Dense)\\ \hline
-Batch\_Normalization (Batch\_Normalization)\\ \hline
-Dropout (Dropout)\\ \hline
-Hidden (Dense)\\ \hline
-Batch\_Normalization (Batch\_Normalization)\\ \hline
-Dropout (Dropout)\\ \hline
-Output (Dense)\\ \hline
-\end{tabular}
+All the pre-trained models we selected came with an already implemented data preprocessing phase.
 
-\caption{Most used architecture in the development phase.}
+Initially, before using augmentation to balance the classes of the dataset, we opted for utilizing the \textit{class\_weight} function to adjust the weights, since the dataset was unbalanced.
+However, after performing data augmentation to balance the classes, we no longer needed to use this function.
+
+\section{Model experiments}
+
+Each team member began by selecting a pre-trained model, and while tweaking hyperparameters and top layers structure, we started to look for the best resulting ones to use.
+
+We started with relatively small models, like \textit{MobileNetV2}, a model known for its favorable trade-off between parameter count and accuracy, as the foundation for our experiments, to leverage fast training and less overfitting risk given the small dataset.
+
+Following this initial setup, we proceeded to design the top layers architecture. 
+Overall, while the specific structures varied slightly between attempts, the core design remained consistent.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|}
+        \hline
+        \textbf{Layer type} \\ \hline
+        Input layer \\ \hline
+        Pre-trained base model \\ \hline
+        Global average pooling 2D \\ \hline
+        Dense \\ \hline
+        Batch normalization \\ \hline
+        Dropout \\ \hline
+        Dense \\ \hline
+        Batch normalization \\ \hline
+        Dropout \\ \hline
+        Output layer \\ \hline
+    \end{tabular}
 \end{table}
+
+Hyperparameter have been also changing a lot during the development phase; here we are just going to show the most used ones.
+In the hyperparameter tuning section you can find all the values that have been used and how they affected our models.
+Here after a recap with the most used ones.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Parameter} & \textbf{Pre-training} & \textbf{Fine tuning} \\ \hline
+        Learning rate & 1e-4 & 1e-5 \\ \hline
+        Weight decay & 1e-3 & 1e-3 \\ \hline
+        Epochs & 10 & 20 \\ \hline
+        Batch size & 64 & 128 \\ \hline
+    \end{tabular}
+\end{table}
+
 \subsection{Transfer learning}
-From the outset, we planned to divide the transfer learning process into two phases: an initial training phase focused on the top layers, followed by fine-tuning the base model once accuracy plateaued. This strategy aimed to enable the model to better leverage the pre-trained weights. To mitigate overfitting, we implemented early stopping, learning rate schedulers, dropout, and regularization techniques.
 
-All training was conducted using Colab and Kaggle GPUs. To address resource limitations, we utilized checkpoints and mixed precision training. Additionally, in some runs, TensorFlow datasets were employed to optimize RAM usage during training.
+From the start, we planned to divide the transfer learning training process in two phases: an initial phase focused on the top layers, followed by a fine-tuning phase mane on the base model, once accuracy plateaued.
+This strategy aimed to enable the model to better leverage the pre-trained weights. 
+To mitigate overfitting, we implemented early stopping, learning rate schedulers, dropout, and regularization techniques.
+
+All the training was conducted using Colab and Kaggle GPUs.
+To address resource limitations, we exploited checkpoints and mixed precision while training. Additionally, in some runs, \textit{TensorFlow Datasets} were employed to optimize RAM usage during training.
+% FIXME lolly che vor di "TensorFlow Datasets"
+
 \subsection{Fine tuning}
-After achieving a plateau in performance during the top layer training phase, we transitioned to fine-tuning. This process involves unfreezing layers of the base model, allowing the model to adjust their weights to better fit the specific patterns in our dataset. Fine-tuning enables more targeted adjustments, leveraging the general features learned during pretraining while adapting to the nuances of our data.
 
-Initially, we unfroze all the layers simultaneously. However, we later adopted the more gradual and widely recommended approach of unfreezing layers incrementally. Gradual unfreezing helps to prevent the pretrained model from completely overwriting its learned representations, preserving useful features while allowing adaptation. Unfreezing all layers at once can lead to catastrophic forgetting, where the model loses valuable generalizable knowledge from pretraining. This gradual approach also reduces the risk of overfitting, as early layers (which often capture fundamental features like edges and textures) remain relatively stable during the initial stages of fine-tuning.
-\section{Comparison between the models}
-\subsection{Used models and comparison overview}
-Important note: the first model used were tested and trained on the first augmented datasets. Later in the competition we have uploaded new augmented datasets, but we had already discard some models. This is the reason for eventually misleading values of accuracy.
+After achieving a plateau in performance during the top layer training phase, we transitioned to fine tuning. 
+This process involved unfreezing layers of the base model, allowing it to adjust weights to better fit the specific patterns in our dataset. 
+Fine-tuning permitted more targeted adjustments, leveraging the general features recognition that had been learned during the top layer pre-training phase, while adapting to the nuances of our data.
+
+Initially, we used to unfroze all layers at once. 
+However, we later adopted a more gradual and widely recommended approach, unfreezing layers incrementally. 
+Gradual unfreezing helps preventing the pre-trained model from completely overwriting its previously learned representations, preserving useful features while allowing adaptation. Unfreezing all layers at once can lead to catastrophic forgettings, where the model looses valuable general knowledge obtained from pre-training.
+This gradual approach also reduces the risk of overfitting, as early layers (which often capture fundamental features like edges and textures) remain relatively stable during the initial stages of fine tuning.
+
+\section{Comparison overview}
+
+The first model used were tested and trained on the first augmented datasets.
+Later on we switched to new augmented datasets. Some models were anyway been discard already. 
+For this reason, some values may be misleading.
+
+\subsection{Base model evaluation}
+
+Initially, we selected a set of pre-trained models to evaluate as foundation for our end-goal model.
+Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M} and \textit{ConvNeXtSmall} models.
+
 \begin{table}[h!]
-\centering
-
-\begin{tabular}{|c|c|c|c|}
-\hline
-\textbf{Model Name} & \textbf{Transfer Learning} & \textbf{Fine tuning}& \textbf{Local Test set} \\
-\hline
-MobileNetV2         & 0.5102 & 0.9163 & 0.9151 \\ \hline
-EfficientNetB4      & 0.7084 & 0.0.8436 & 0.8809 \\ \hline
-EfficientNetV2S     & 0.6898 & 0.8844 & 0.9321 \\ \hline
-EfficientNetV2M     &  &  & \\ \hline
-ConvNeXtSmall       &  &  & \\ \hline
-DenseNet201         &  &  & \\ \hline
-Xception            &  &  & \\ \hline
-ConvNeXtTiny        &  &  & \\ \hline
-\end{tabular}
-\caption{List of models used in the experiment with their accuracy in the various training phases.}
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Model Name} & \textbf{Pre-training} & \textbf{Fine tuning} & \textbf{Local accuracy} \\ \hline
+        Xception            &  &  & \\ \hline
+        ResNet152V2         & 0.70 & 0.92 & \\ \hline
+        InceptionV3         &  & 0.90 & \\ \hline
+        InceptionResNetV2   &  &  & \\ \hline
+        MobileNetV2         & 0.5102 & 0.9163 & 0.9151 \\ \hline
+        DenseNet201         & 0.78 & 0.91 & \\ \hline
+        EfficientNetB4      & 0.7084 & 0.8436 & 0.8809 \\ \hline
+        EfficientNetV2S     & 0.6898 & 0.8844 & 0.9321 \\ \hline
+        EfficientNetV2M     &  &  & \\ \hline
+        ConvNeXtTiny        &  &  & \\ \hline
+        ConvNeXtSmall       &  &  & \\ \hline
+    \end{tabular}
 \end{table}
 
 \subsection{Hyperparameter tuning}
-\label{hyperparametertuning}
-KELLO divertiti.
 
+% TODO spacca tutto kello
 
 \section{Final model}
-ConvNeXtTiny-LOLLI
 
+% TODO spacca tutto lolly
 
 \section{Contributions}
 
-All the members of the team contributed equally to the project. Here is a list of the features that each member contributed the most to:
+All the members of the team contributed equally to the project. 
+Here is a list of the main work tasks to which that each member contributed the most.
+
 \begin{itemize}
-    \item betti helped with the setup of the work environments, trained and tested new models and fine tuned all the parameter in order to make the models perform at best.
-    \item lolly worked hard on data, cleaning and augmenting the dataset and providing the best datasets to work on.
-    \item kello helped with the augmentation, training and testing process. He land us a hand taking part to all the work phases.
+    \item Bettiati helped with the setup of the work environment, training and testing new models, and fine tuning the parameters in order to find the best performing ones.
+    \item Bianchi worked on data, by cleaning the dataset and providing the final dynamic augmentation used for the final model, while helping with the models training.
+    \item Ostidich worked on the initial data augmentation, for then focussing on the hyperparameter tuning and testing process.
 \end{itemize}
 
-
-
-
 \section{References}
-NON CI SERVONO REFERENCES, ABBIAMO LOLLI IN SQUADRA.
-LOLLI SVELA DOVE HAI RECAPITATO I SEGRETI.
+
+\begin{itemize}
+    \item Artificial Neural Networks and Deep Learning (Polimi, AY 2024/2025): course slides.
+\end{itemize}
 
 \end{document}
