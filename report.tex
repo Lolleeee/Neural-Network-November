@@ -99,6 +99,7 @@ This approach made the augmentation process dynamic rather than static, as augme
 Each team member began by selecting a pre-trained model, adjusting hyperparameters like learning rate and batch size, and getting a feel of the complexity of the task.
 Starting with relatively small models like MobileNet to leverage fast training and less overfitting risk given the small dataset. 
 Following this initial setup, we proceeded to design the top layers architecture. Overall, While the specific structures varied slightly between attempts, the core design remained consistent: place the pre-trained model after the input layer, followed by a \textit{GlobalAveragePooling2D} layer, followed by a normalization and dropout layer, after which 2 blocks of \textit{Dense-Normalization-Dropout} layers where used to get finally to the output layer of 8 neurons for the 8 labels.
+CIAOOOOOO
 \subsection{Hyperparameters}
 Hyperparameter have been changed a lot during the development phase, here we are just gonna put the most used. In the \hyperref[hyperparametertuning]{Hyperparameter Tuning} you can find all the values used and how their change affected our models.
 Here instead the most used ones:\\
