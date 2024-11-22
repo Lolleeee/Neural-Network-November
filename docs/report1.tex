@@ -26,7 +26,7 @@
     
     \begin{figure}[H]
         \raggedright
-        \includegraphics[scale=0.4]{polimi.png} \hfill \includegraphics[scale=0.3]{airlab.jpeg}
+        \includegraphics[scale=0.4]{images/polimi.png} \hfill \includegraphics[scale=0.3]{images/airlab.jpeg}
     \end{figure}
     
     \vspace{5mm}
@@ -76,10 +76,19 @@ The first step in a good machine learning pipeline is exploratory data analysis 
 
 An analysis of class distribution revealed a mildly severe class imbalance. To address this issue, we employed image duplication and data augmentation to ensure more balanced representation across classes.
 
-Additionally, we identified some ambiguously labeled images, such as IM1 and IM2. Since there were no clearly mislabeled samples and considering the overall dataset size, we opted to retain these ambiguous images. This decision was made to preserve inherent diversity and sparsity in the dataset, which can contribute to the robustness of the model.
+Additionally, we identified some ambiguously labeled images, such as the ones here below. Since there were no clearly mislabeled samples and considering the overall dataset size, we opted to retain these ambiguous images. This decision was made to preserve inherent diversity and sparsity in the dataset, which can contribute to the robustness of the model.
 
-\begin{figure}
-
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.2\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/ambiguous1.png}
+    \end{minipage}
+    \hspace{2cm}
+    \begin{minipage}{0.2\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/ambiguous2.png}
+    \end{minipage}
 \end{figure}
 
 \subsection{Data augmentation}
