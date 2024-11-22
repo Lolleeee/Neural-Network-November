@@ -11,6 +11,7 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{geometry}
+\usepackage{enumitem}
 
 % OPTIONS
 \geometry{margin=2cm}
@@ -21,6 +22,9 @@
     citecolor=blue,
     pdfborder={0 0 0}
 }
+\setlist[itemize]{label=\scriptsize\textbullet}
+\setlist[itemize]{noitemsep, topsep=1pt}
+\setlist[enumerate]{noitemsep, topsep=1pt}
 
 \begin{document}
     
@@ -41,17 +45,17 @@
         % Team Members Information
         {\large Bettiati Matteo,}
         {\large Bianchi Lorenzo,}
-        {\large Ostidich Francesco,}\\
+        {\large Ostidich Francesco}\\
         \vspace{2mm}
         % Codabench Nicknames
         {betti,}
         {lolly,}
-        {kello,}\\
+        {kello}\\
         \vspace{2mm}
         % Matriculation Numbers
         {258730,}
         {259946,}
-        {259863,}\\
+        {259863}\\
         \vspace{5mm}
         \today
     \end{center}    
@@ -115,16 +119,67 @@ Additionally, we identified some ambiguously labeled images, such as the ones he
 
 \subsection{Data augmentation}
 
-Data augmentation has been a paramount stage which influenced greatly the performance of the model. The progressive refinement of the pipeline lead to 3 main iterations of data augmentation pipeline.
-All of which handled class unbalance and performed data splitting either by custom functions or using \textit{train\_test\_split} by \textit{scikit\-learn}
+Data augmentation has been a paramount stage which influenced greatly the performance of the model.
+The progressive refinement of the pipeline lead to 3 main iterations of data augmentation pipeline.
+All of which handled class unbalance and performed data splitting either by custom functions or using \textit{train\_test\_split} by \textit{scikit\-learn}.
 
-The first one was done by kello so I dont know what he'd done.
+In the first place, 150 images per class were reserved for a test set.
+Those images were themselves augmented, in order to provide higher generality precision when evaluating the trained models.
 
-The second one same
+\subsubsection{Initial augmentation}
 
-The third approach, which was ultimately used in the final submission model, began by balancing the label distribution. This was achieved by duplicating the underrepresented classes just enough to match the number of samples in the largest class. The entire dataset was then split and fed into a \textit{TensorFlow Dataset}, which managed the batch size, shuffling, and mapping of the augmentation pipeline.
+The first round of augmentation was relatively simple compared to the subsequent iterations.
+It included the following functions, each applied with random intensity:
 
-This approach made the augmentation process dynamic rather than static, as augmentations were applied in real-time during runtime. By handling augmentations dynamically, the model was exposed to a broader variety of augmented samples, enhancing generalization and reducing the risk of overfitting. However, this method was adopted only as a last resort, as it significantly slowed down the training process, even though it was a necessary step to achieve the final optimal performance.
+\begin{itemize}
+    \item random flip;
+    \item random rotation;
+    \item random brightness;
+    \item random contrast;
+    \item random stretch;
+    \item random hue;
+    \item random blur;
+    \item random saturation.
+\end{itemize}
+
+Both original and augmented images were included in this dataset. 
+However, care was taken to ensure that different versions of the same image were not included in both the training and validation sets.
+Each image was augmented multiple times to reach the quota of 2,500 elements per class.
+
+\subsubsection{Static augmentation}
+
+The second round utilized additional functions to achieve a higher level of augmentation. The following functions were used:
+
+\begin{itemize}
+    \item random blur;
+    \item random flip;
+    \item random rotation;
+    \item random brightness;
+    \item random hue;
+    \item auto contrast;
+    \item aug mix;
+    \item grid mask;
+    \item random color degeneration;
+    \item random cutout;
+    \item random saturation;
+    \item random dhear.
+\end{itemize}
+
+Original images were excluded from the dataset at this stage. 
+Each image was augmented as many times as to reach 3,000 elements per class.
+
+For the final submissions, the best models trained on this dataset were retrained using a dataset with the same augmentation level, now including all test set images. 
+Additionally, the number of elements per class was increased to 5,000.
+
+\subsubsection{Dynamic augmentation}
+
+The third approach, which was ultimately used in the final submission model, began by balancing the label distribution.
+This was achieved by duplicating the underrepresented classes just enough to match the number of samples in the largest class.
+The entire dataset was then split and fed into a \textit{TensorFlow Dataset}, which managed the batch size, shuffling, and mapping of the augmentation pipeline.
+
+This approach made the augmentation process dynamic rather than static, as augmentations were applied in real-time during runtime. 
+By handling augmentations dynamically, the model was exposed to a broader variety of augmented samples, enhancing generalization and reducing the risk of overfitting.
+However, this method was adopted only as a last resort, as it significantly slowed down the training process, even though it was a necessary step to achieve the final performance.
 
 \section{First network models and experiments}
 Each team member began by selecting a pre-trained model, adjusting hyperparameters like learning rate and batch size, and getting a feel of the complexity of the task.
