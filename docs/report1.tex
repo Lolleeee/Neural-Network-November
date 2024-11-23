@@ -273,8 +273,9 @@ For this reason, some values may be misleading.
 
 \subsection{Base model evaluation}
 
-Initially, we selected a set of pre-trained models to evaluate as foundation for our end-goal model.
-Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M} and \textit{ConvNeXt} models.
+Initially, we selected a set of pre-trained models to evaluate as foundations for our end-goal model. Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M}, and \textit{ConvNeXt} models.
+
+The reported model accuracies correspond to the local test accuracy and the Condabench development phase accuracy, each obtained using a customized top layer structure.  
 
 \begin{table}[h!]
     \centering
@@ -305,10 +306,46 @@ Below, we summarize the key metrics observed during this evaluation phase, which
 \subsection{Hyperparameter tuning}
 
 % TODO spacca tutto kello
+% Non so se serve, secondo me basta aggiungere qualcosa nel model experiments -lolly
 
 \section{Final model}
+For our final submission model, we achieved the best performance by utilizing the previously described \textit{Dynamical Data Augmentation} technique. The model was trained with a batch size of 512, a learning rate of $1 \times 10^{-3}$, a weight decay of $1 \times 10^{-4}$, and the AdamW optimizer. The model architecture is summarized in the following table:
 
-% TODO spacca tutto lolly
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Layer} & \textbf{Description} \\ \hline
+        Input Layer & Input Image \\ \hline
+        Base Model & ConvNeXtTiny architecture \\ \hline
+        GlobalAveragePooling & \texttt{GlobalAveragePooling2D} \\ \hline
+        Group Normalization 1 & \texttt{groups=32, axis=-1} \\ \hline
+        Dropout 1 & \texttt{p=0.2} \\ \hline
+        Dense 1 & \texttt{512, act='gelu', kernel\_reg=l2(0.001)} \\ \hline
+        Group Normalization 2 & \texttt{groups=32, axis=-1} \\ \hline
+        Dropout 2 & \texttt{p=0.2} \\ \hline
+        Dense 2 & \texttt{128, act='gelu', kernel\_reg=l2(0.001)} \\ \hline
+        Group Normalization 3 & \texttt{groups=32, axis=-1} \\ \hline
+        Output Layer & \texttt{num\_classes, act='softmax'} \\ \hline
+    \end{tabular}
+    \caption{Model architecture summary for ConvNeXtTiny}
+    \label{tab:model_architecture}
+\end{table}
+
+This model achieved a end top-layers training validation set accuracy of \textbf{81\%}.
+
+\subsection*{Fine-Tuning Approach}
+
+The fine-tuning was performed unconventionally by unfreezing the entire model in a single step. Typically, fine-tuning involves progressively unfreezing layers to prevent large weight changes early on. However, in this case, unfreezing the entire model at once led to better performance. This could have allowed for simultaneous adaptation of all layers, enabling faster convergence, reduced overfitting, and greater flexibility in learning complex patterns tailored to the target task, which in the end increased the accuracy and generalization capacity.
+
+The history of the fine-tuning process is depicted in the following graphs:  
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{docs/images/final_model_history.png}
+    \caption{Final Model Fine Tuning History}
+\end{figure}
+
+Finally submitting this model we were able to achieve a final local accuracy of \textbf{98\%} and an online of \textbf{92\%}
 
 \section{Contributions}
 
