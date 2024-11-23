@@ -121,12 +121,14 @@ Additionally, we identified some ambiguously labeled images, such as the ones he
 
 Given the class unbalance, initially, before using augmentation to balance the classes of the dataset, we opted for utilizing the \textit{class\_weight} function to adjust the weights attributed by the loss function on each class.
 However, after performing sample duplication and data augmentation to balance the classes, we no longer needed to use this function.
+% FIXME precisare se class_weight è funziona nostra o da dove è importata altrimenti
 
 \subsection{Data augmentation}
 
 Data augmentation has been a paramount stage which influenced greatly the performance of the model.
 The progressive refinement of the pipeline lead to 3 main iterations of data augmentation pipeline.
 All of which handled class unbalance and performed data splitting either by custom functions or using \textit{train\_test\_split} by \textit{scikit\-learn}.
+% FIXME da che libreria sono importate
 
 In the first place, 150 images per class were set aside as a test set, which was further augmented to ensure more robust and reliable accuracy in evaluating the trained models.
 
@@ -181,20 +183,21 @@ Additionally, the number of elements per class was increased to 5,000.
 The third approach, which was ultimately used in the final submission model, began by balancing the label distribution.
 This was achieved by duplicating the underrepresented classes just enough to match the number of samples in the largest class.
 The entire dataset was then split and fed into a \textit{TensorFlow Dataset} class, which managed the batch size, shuffling, and mapping of the augmentation pipeline.
-% FIXME lolly che vor di "TensorFlow Datasets"
-% lolly: bro è una funzione usata e stra usata di tensorflow che ti crea un dataset
+% FIXME precisare da dove arriva TensorFlow Dataset
 
 This approach made the augmentation process dynamic rather than static, as augmentations were applied in real-time during runtime. 
 By handling augmentations dynamically, the model was exposed to a broader variety of augmented samples, enhancing generalization and reducing the risk of overfitting.
 
-The augmentation has been done through the use of the following \textit{keras\_cv} augmentation layers:
+The augmentation has been done through the use of the following \textit{keras\_cv} library augmentation layers:
+
 \begin{itemize}
-    \item Augmix;
-    \item RandAugment;
-    \item RandomZoom;
-    \item GridMask;
+    \item random augmentation mix;
+    \item random zoom;
+    \item random grid mask.
 \end{itemize}
-All of these layers were mapped using \textit{RandomAugmentationPipeline}
+
+All of these layers were mapped using \textit{RandomAugmentationPipeline}.
+% FIXME precisare che cos'è RandomAugmentationPipeline? una classe nostra o una classe importata?
 
 However, this method was adopted only as a last resort, as it significantly slowed down the training process, even though it was a necessary step to achieve the final performance.
 
@@ -222,11 +225,12 @@ Overall, while the specific structures varied slightly between attempts, the cor
         Dropout (0.2 to 0.4) \\ \hline
         Dense (64 to 512, ReLU or GeLU) \\ \hline
         Normalization (Group or Batch) \\ \hline
-        Dropout (0.2 to 0.4 \\ \hline
+        Dropout (0.2 to 0.4) \\ \hline
         Output layer \\ \hline
     \end{tabular}
 \end{table}
-For each Dense layer we experimented also with kernel regularizers with a average value of 1e-3.
+
+For each dense layer we experimented also with kernel regularizers, with an average value of 1e-3.
 
 In the hyperparameter tuning section you can find all the values that have been used. By the end we tried a wide range for all parameters as choices like dataset size, complexity, model size and optimizers varied a lot through the experiments.
 Here after a recap with the most used ones.
@@ -242,7 +246,9 @@ Here after a recap with the most used ones.
         Batch size & 32 to 512 & 32 to 512 \\ \hline
     \end{tabular}
 \end{table}
+
 We also experimented with two optimizers, \textit{Lion} and \textit{AdamW}, tuning their hyperparameters appropriately for each. Generally, \textit{Lion} performed best with a learning rate on the lower end of the specified range and a weight decay on the higher end, while \textit{AdamW} tended to favor a higher learning rate and a lower weight decay.
+
 \subsection{Transfer learning}
 
 We structured the transfer learning process into two phases: the first phase focused on training the top layers, followed by a fine-tuning phase.
@@ -252,7 +258,7 @@ The first phase is the one which we mainly used to tune the top layers architect
 To enhance training efficiency, we incorporated callbacks such as early stopping, learning rate schedulers, and checkpoints.
 
 The training was performed using Colab and Kaggle GPUs. To accelerate the process, we utilized mixed precision and full RAM dataset loading, while if needed, employing \textit{TensorFlow Dataset} classes to optimize RAM usage and address resource limitations.
-% FIXME lolly che vor di "TensorFlow Datasets"
+% FIXME è giusto dire TensorFlow Dataset *classes* ?
 
 \subsection{Fine tuning}
 
@@ -268,12 +274,14 @@ This gradual approach also reduces the risk of overfitting, as early layers (whi
 \section{Comparison overview}
 
 The first model used wes tested and trained on the first augmented datasets.
-Later on we switched to new augmented datasets. Some models were anyway been discard already. 
+Later on we switched to new augmented datasets. 
+Some models were anyway been discard already. 
 For this reason, some values may be misleading.
 
 \subsection{Base model evaluation}
 
-Initially, we selected a set of pre-trained models to evaluate as foundations for our end-goal model. Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M}, and \textit{ConvNeXt} models.
+Initially, we selected a set of pre-trained models to evaluate as foundations for our end-goal model.
+Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M}, and \textit{ConvNeXt} models.
 
 The reported model accuracies correspond to the local test accuracy and the Condabench development phase accuracy, each obtained using a customized top layer structure.  
 
@@ -297,55 +305,65 @@ The reported model accuracies correspond to the local test accuracy and the Cond
         EfficientNetV2S     & 0.6898 & 0.9321 \\ \hline
         EfficientNetV2M     &  &  \\ \hline
     \end{tabular}
-    \caption{Model performance overview.}
-    \label{tab:models_performance}
 \end{table}
-
-
+%FIXME la lasciamo bucata questa tabella? e le convnext non le facciamo vedere qua dato che poi le abbiamo scelte?
 
 \subsection{Hyperparameter tuning}
 
-% TODO spacca tutto kello
-% Non so se serve, secondo me basta aggiungere qualcosa nel model experiments -lolly
+To identify the best-performing model parameters, we conducted an extensive series of training test runs to determine which configuration achieved the highest accuracy on the local test set. 
+Ultimately, the final model was obtained through a different approach using alternative parameters.
+However, the prior hyperparameter tuning played a crucial role in setting up the final training session by providing valuable parameter ranges to guide the process.
+
+Below is a table summarizing the parameter values used in each experiment.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{reports/images/hyperparameter_tuning.pdf}
+\end{figure}
 
 \section{Final model}
-For our final submission model, we achieved the best performance by utilizing the previously described \textit{Dynamical Data Augmentation} technique. The model was trained with a batch size of 512, a learning rate of $1 \times 10^{-3}$, a weight decay of $1 \times 10^{-4}$, and the AdamW optimizer. The model architecture is summarized in the following table:
+
+For our final submission model, we achieved the best performance by utilizing the previously described dynamical aata augmentation technique.
+The model was trained with a batch size of 512, a learning rate of 1e-3, a weight decay of 1e-4, and the AdamW optimizer.
+The model architecture is summarized in the following table:
 
 \begin{table}[h!]
     \centering
     \begin{tabular}{|c|c|}
         \hline
         \textbf{Layer} & \textbf{Description} \\ \hline
-        Input Layer & Input Image \\ \hline
-        Base Model & ConvNeXtTiny architecture \\ \hline
-        GlobalAveragePooling & \texttt{GlobalAveragePooling2D} \\ \hline
-        Group Normalization 1 & \texttt{groups=32, axis=-1} \\ \hline
+        Input layer & \texttt{input\_shape} \\ \hline
+        Pre-trained base model & \texttt{convnext\_tiny} \\ \hline
+        Global average pooling 2D & \texttt{GlobalAveragePooling2D} \\ \hline
+        Normalization 1 & \texttt{groups=32, axis=-1} \\ \hline
         Dropout 1 & \texttt{p=0.2} \\ \hline
         Dense 1 & \texttt{512, act='gelu', kernel\_reg=l2(0.001)} \\ \hline
-        Group Normalization 2 & \texttt{groups=32, axis=-1} \\ \hline
+        Normalization 2 & \texttt{groups=32, axis=-1} \\ \hline
         Dropout 2 & \texttt{p=0.2} \\ \hline
         Dense 2 & \texttt{128, act='gelu', kernel\_reg=l2(0.001)} \\ \hline
-        Group Normalization 3 & \texttt{groups=32, axis=-1} \\ \hline
-        Output Layer & \texttt{num\_classes, act='softmax'} \\ \hline
+        Normalization 3 & \texttt{groups=32, axis=-1} \\ \hline
+        Output layer & \texttt{num\_classes, act='softmax'} \\ \hline
     \end{tabular}
-    \caption{Model architecture summary for ConvNeXtTiny}
-    \label{tab:model_architecture}
 \end{table}
 
 This model achieved a end top-layers training validation set accuracy of \textbf{81\%}.
 
-\subsection*{Fine-Tuning Approach}
+\subsection{Fine tuning approach}
 
-The fine-tuning was performed unconventionally by unfreezing the entire model in a single step. Typically, fine-tuning involves progressively unfreezing layers to prevent large weight changes early on. However, in this case, unfreezing the entire model at once led to better performance. This could have allowed for simultaneous adaptation of all layers, enabling faster convergence, reduced overfitting, and greater flexibility in learning complex patterns tailored to the target task, which in the end increased the accuracy and generalization capacity.
+The fine-tuning was performed unconventionally by unfreezing the entire model in a single step.
+Typically, fine-tuning involves progressively unfreezing layers to prevent large weight changes early on.
+However, in this case, unfreezing the entire model at once led to a better performance. 
+This could have allowed for simultaneous adaptation of all layers, enabling faster convergence, reduced overfitting, and greater flexibility in learning complex patterns tailored to the target task, which in the end increased the accuracy and generalization capacity.
+%% FIXME quest'ultima frase non si capisce a cosa si riferisce
 
-The history of the fine-tuning process is depicted in the following graphs:  
+The history of the fine-tuning process is depicted in the following graphs.
+
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=\textwidth]{docs/images/final_model_history.png}
-    \caption{Final Model Fine Tuning History}
+    \includegraphics[width=\textwidth]{images/final_model_history.png}
 \end{figure}
 
-Finally submitting this model we were able to achieve a final local accuracy of \textbf{98\%} and an online of \textbf{92\%}
+The submission of this final model made us able to achieve a final local accuracy of \textbf{98\%} and an online one of \textbf{92\%}
 
 \section{Contributions}
 
