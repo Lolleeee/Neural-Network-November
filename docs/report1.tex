@@ -117,14 +117,18 @@ Additionally, we identified some ambiguously labeled images, such as the ones he
     \end{minipage}
 \end{figure}
 
+\subsection{Preprocessing data}
+
+Given the class unbalance, initially, before using augmentation to balance the classes of the dataset, we opted for utilizing the \textit{class\_weight} function to adjust the weights attributed by the loss function on each class.
+However, after performing sample duplication and data augmentation to balance the classes, we no longer needed to use this function.
+
 \subsection{Data augmentation}
 
 Data augmentation has been a paramount stage which influenced greatly the performance of the model.
 The progressive refinement of the pipeline lead to 3 main iterations of data augmentation pipeline.
 All of which handled class unbalance and performed data splitting either by custom functions or using \textit{train\_test\_split} by \textit{scikit\-learn}.
 
-In the first place, 150 images per class were reserved for a test set.
-Those images were themselves augmented, in order to provide higher generality precision when evaluating the trained models.
+In the first place, 150 images per class were set aside as a test set, which was further augmented to ensure more robust and reliable accuracy in evaluating the trained models.
 
 \subsubsection{Initial augmentation}
 
@@ -176,19 +180,23 @@ Additionally, the number of elements per class was increased to 5,000.
 
 The third approach, which was ultimately used in the final submission model, began by balancing the label distribution.
 This was achieved by duplicating the underrepresented classes just enough to match the number of samples in the largest class.
-The entire dataset was then split and fed into a \textit{TensorFlow Dataset}, which managed the batch size, shuffling, and mapping of the augmentation pipeline.
+The entire dataset was then split and fed into a \textit{TensorFlow Dataset} class, which managed the batch size, shuffling, and mapping of the augmentation pipeline.
 % FIXME lolly che vor di "TensorFlow Datasets"
+% lolly: bro è una funzione usata e stra usata di tensorflow che ti crea un dataset
 
 This approach made the augmentation process dynamic rather than static, as augmentations were applied in real-time during runtime. 
 By handling augmentations dynamically, the model was exposed to a broader variety of augmented samples, enhancing generalization and reducing the risk of overfitting.
+
+The augmentation has been done through the use of the following \textit{keras\_cv} augmentation layers:
+\begin{itemize}
+    \item Augmix;
+    \item RandAugment;
+    \item RandomZoom;
+    \item GridMask;
+\end{itemize}
+All of these layers were mapped using \textit{RandomAugmentationPipeline}
+
 However, this method was adopted only as a last resort, as it significantly slowed down the training process, even though it was a necessary step to achieve the final performance.
-
-\subsection{Preprocessing data}
-
-All the pre-trained models we selected came with an already implemented data preprocessing phase.
-
-Initially, before using augmentation to balance the classes of the dataset, we opted for utilizing the \textit{class\_weight} function to adjust the weights, since the dataset was unbalanced.
-However, after performing data augmentation to balance the classes, we no longer needed to use this function.
 
 \section{Model experiments}
 
@@ -207,18 +215,20 @@ Overall, while the specific structures varied slightly between attempts, the cor
         Input layer \\ \hline
         Pre-trained base model \\ \hline
         Global average pooling 2D \\ \hline
-        Dense \\ \hline
-        Batch normalization \\ \hline
-        Dropout \\ \hline
-        Dense \\ \hline
-        Batch normalization \\ \hline
-        Dropout \\ \hline
+        Normalization (Group or Batch) \\ \hline
+        Dropout (0.2 to 0.4) \\ \hline
+        Dense (128 to 1024 neurons, ReLU or GeLU) \\ \hline
+        Normalization (Group or Batch) \\ \hline
+        Dropout (0.2 to 0.4) \\ \hline
+        Dense (64 to 512, ReLU or GeLU) \\ \hline
+        Normalization (Group or Batch) \\ \hline
+        Dropout (0.2 to 0.4 \\ \hline
         Output layer \\ \hline
     \end{tabular}
 \end{table}
+For each Dense layer we experimented also with kernel regularizers with a average value of 1e-3.
 
-Hyperparameter have been also changing a lot during the development phase; here we are just going to show the most used ones.
-In the hyperparameter tuning section you can find all the values that have been used and how they affected our models.
+In the hyperparameter tuning section you can find all the values that have been used. By the end we tried a wide range for all parameters as choices like dataset size, complexity, model size and optimizers varied a lot through the experiments.
 Here after a recap with the most used ones.
 
 \begin{table}[h!]
@@ -226,27 +236,28 @@ Here after a recap with the most used ones.
     \begin{tabular}{|c|c|c|}
         \hline
         \textbf{Parameter} & \textbf{Pre-training} & \textbf{Fine tuning} \\ \hline
-        Learning rate & 1e-4 & 1e-5 \\ \hline
-        Weight decay & 1e-3 & 1e-3 \\ \hline
-        Epochs & 10 & 20 \\ \hline
-        Batch size & 64 & 128 \\ \hline
+        Learning rate & 1e-3 to 1e-4 & 1e-5 to 1e-6 \\ \hline
+        Weight decay & 1e-1 to 1e-3 & 1e-1 to 1e-3 \\ \hline
+        Epochs & 10 to 20 & 20 to 30 \\ \hline
+        Batch size & 32 to 512 & 32 to 512 \\ \hline
     \end{tabular}
 \end{table}
-
+We also experimented with two optimizers, \textit{Lion} and \textit{AdamW}, tuning their hyperparameters appropriately for each. Generally, \textit{Lion} performed best with a learning rate on the lower end of the specified range and a weight decay on the higher end, while \textit{AdamW} tended to favor a higher learning rate and a lower weight decay.
 \subsection{Transfer learning}
 
-From the start, we planned to divide the transfer learning training process in two phases: an initial phase focused on the top layers, followed by a fine-tuning phase mane on the base model, once accuracy plateaued.
-This strategy aimed to enable the model to better leverage the pre-trained weights. 
-To mitigate overfitting, we implemented early stopping, learning rate schedulers, dropout, and regularization techniques.
+We structured the transfer learning process into two phases: the first phase focused on training the top layers, followed by a fine-tuning phase.
 
-All the training was conducted using Colab and Kaggle GPUs.
-To address resource limitations, we exploited checkpoints and mixed precision while training. Additionally, in some runs, \textit{TensorFlow Datasets} were employed to optimize RAM usage during training.
+The first phase is the one which we mainly used to tune the top layers architecture and parameters.
+
+To enhance training efficiency, we incorporated callbacks such as early stopping, learning rate schedulers, and checkpoints.
+
+The training was performed using Colab and Kaggle GPUs. To accelerate the process, we utilized mixed precision and full RAM dataset loading, while if needed, employing \textit{TensorFlow Dataset} classes to optimize RAM usage and address resource limitations.
 % FIXME lolly che vor di "TensorFlow Datasets"
 
 \subsection{Fine tuning}
 
 After achieving a plateau in performance during the top layer training phase, we transitioned to fine tuning. 
-This process involved unfreezing layers of the base model, allowing it to adjust weights to better fit the specific patterns in our dataset. 
+This process involved unfreezing layers of the base model and adjusting LR to a lower value, allowing it to adjust weights to better fit the specific patterns in our dataset. 
 Fine-tuning permitted more targeted adjustments, leveraging the general features recognition that had been learned during the top layer pre-training phase, while adapting to the nuances of our data.
 
 Initially, we used to unfroze all layers at once. 
@@ -256,33 +267,40 @@ This gradual approach also reduces the risk of overfitting, as early layers (whi
 
 \section{Comparison overview}
 
-The first model used were tested and trained on the first augmented datasets.
+The first model used wes tested and trained on the first augmented datasets.
 Later on we switched to new augmented datasets. Some models were anyway been discard already. 
 For this reason, some values may be misleading.
 
 \subsection{Base model evaluation}
 
 Initially, we selected a set of pre-trained models to evaluate as foundation for our end-goal model.
-Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M} and \textit{ConvNeXtSmall} models.
+Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M} and \textit{ConvNeXt} models.
 
 \begin{table}[h!]
     \centering
-    \begin{tabular}{|c|c|c|c|}
+    \begin{tabular}{|c|c|c|}
         \hline
-        \textbf{Model Name} & \textbf{Pre-training} & \textbf{Fine tuning} & \textbf{Local accuracy} \\ \hline
-        Xception            &  &  & \\ \hline
-        ResNet152V2         & 0.70 & 0.92 & \\ \hline
-        InceptionV3         &  & 0.90 & \\ \hline
-        InceptionResNetV2   &  &  & \\ \hline
-        MobileNetV2         & 0.5102 & 0.9163 & 0.9151 \\ \hline
-        DenseNet201         & 0.78 & 0.91 & \\ \hline
-        EfficientNetB4      & 0.7084 & 0.8436 & 0.8809 \\ \hline
-        EfficientNetV2S     & 0.6898 & 0.8844 & 0.9321 \\ \hline
-        EfficientNetV2M     &  &  & \\ \hline
-        ConvNeXtTiny        &  &  & \\ \hline
-        ConvNeXtSmall       &  &  & \\ \hline
+        \multicolumn{3}{|c|}{\textbf{Early Stage Models}} \\ \hline
+        \textbf{Model Name} & \textbf{Local Accuracy} & \textbf{Online Accuracy} \\ \hline
+        Xception            &  &  \\ \hline
+        ResNet152V2         & 0.70 & 0.92 \\ \hline
+        InceptionV3         &  & 0.90 \\ \hline
+        \multicolumn{3}{|c|}{\textbf{Middle Stage Models}} \\ \hline
+        \textbf{Model Name} & \textbf{Local Accuracy} & \textbf{Online Accuracy} \\ \hline
+        InceptionResNetV2   &  &  \\ \hline
+        MobileNetV2         & 0.5102 & 0.9151 \\ \hline
+        DenseNet201         & 0.78 & 0.91 \\ \hline
+        \multicolumn{3}{|c|}{\textbf{Late Stage Models}} \\ \hline
+        \textbf{Model Name} & \textbf{Local Accuracy} & \textbf{Online Accuracy} \\ \hline
+        EfficientNetB4      & 0.7084 & 0.8809 \\ \hline
+        EfficientNetV2S     & 0.6898 & 0.9321 \\ \hline
+        EfficientNetV2M     &  &  \\ \hline
     \end{tabular}
+    \caption{Model performance overview.}
+    \label{tab:models_performance}
 \end{table}
+
+
 
 \subsection{Hyperparameter tuning}
 
