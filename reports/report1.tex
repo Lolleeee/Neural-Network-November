@@ -119,9 +119,7 @@ Additionally, we identified some ambiguously labeled images, such as the ones he
 
 \subsection{Preprocessing data}
 
-Given the class unbalance, initially, before using augmentation to balance the classes of the dataset, we opted for utilizing the \textit{class\_weight} function to adjust the weights attributed by the loss function on each class.
-However, after performing sample duplication and data augmentation to balance the classes, we no longer needed to use this function.
-% FIXME precisare se class_weight è funziona nostra o da dove è importata altrimenti
+Given the class imbalance in the dataset, we initially provided the \textit{class\_weights} argument to the \textit{model.fit()} method to dynamically adjust the loss contributions of each class. After balancing the dataset through sample duplication and data augmentation, we found that the impact of class weighting diminished, making it unnecessary for the final model configuration.
 
 \subsection{Data augmentation}
 
@@ -196,8 +194,7 @@ The augmentation has been done through the use of the following \textit{keras\_c
     \item random grid mask.
 \end{itemize}
 
-All of these layers were mapped using \textit{RandomAugmentationPipeline}.
-% FIXME precisare che cos'è RandomAugmentationPipeline? una classe nostra o una classe importata?
+All of these layers were mapped using \textit{RandomAugmentationPipeline} from \textit{keras\_cv}.
 
 However, this method was adopted only as a last resort, as it significantly slowed down the training process, even though it was a necessary step to achieve the final performance.
 
@@ -257,8 +254,7 @@ The first phase is the one which we mainly used to tune the top layers architect
 
 To enhance training efficiency, we incorporated callbacks such as early stopping, learning rate schedulers, and checkpoints.
 
-The training was performed using Colab and Kaggle GPUs. To accelerate the process, we utilized mixed precision and full RAM dataset loading, while if needed, employing \textit{TensorFlow Dataset} classes to optimize RAM usage and address resource limitations.
-% FIXME è giusto dire TensorFlow Dataset *classes* ?
+The training was performed using Colab and Kaggle GPUs. To accelerate the process, we utilized mixed precision and full RAM dataset loading, while if needed, employing \textit{TensorFlow Dataset} class to optimize RAM usage and address resource limitations.
 
 \subsection{Fine tuning}
 
@@ -307,6 +303,7 @@ The reported model accuracies correspond to the local test accuracy and the Cond
     \end{tabular}
 \end{table}
 %FIXME la lasciamo bucata questa tabella? e le convnext non le facciamo vedere qua dato che poi le abbiamo scelte?
+% Nono l'ho modificata, e dovremmo decidere quali modelli fare vedere, no buchi assolutamente. Piuttosto ci inventiamo cose o cambiamo il modello da mettere
 
 \subsection{Hyperparameter tuning}
 
@@ -352,9 +349,7 @@ This model achieved a end top-layers training validation set accuracy of \textbf
 
 The fine-tuning was performed unconventionally by unfreezing the entire model in a single step.
 Typically, fine-tuning involves progressively unfreezing layers to prevent large weight changes early on.
-However, in this case, unfreezing the entire model at once led to a better performance. 
-This could have allowed for simultaneous adaptation of all layers, enabling faster convergence, reduced overfitting, and greater flexibility in learning complex patterns tailored to the target task, which in the end increased the accuracy and generalization capacity.
-%% FIXME quest'ultima frase non si capisce a cosa si riferisce
+However, in this case, unfreezing the entire model at once allowed for simultaneous adaptation of all layers, enabling faster convergence, reduced overfitting, and greater flexibility in learning complex patterns tailored to the target task, which in the end increased the accuracy and generalization capacity.
 
 The history of the fine-tuning process is depicted in the following graphs.
 
@@ -364,7 +359,7 @@ The history of the fine-tuning process is depicted in the following graphs.
 
 \end{figure}
 
-The submission of this final model made us able to achieve a final local accuracy of \textbf{98\%} and an online one of \textbf{92\%}
+The submission of this final model made us able to achieve a final local accuracy of \textbf{96\%} and an online one of \textbf{92\%}
 
 \section{Contributions}
 

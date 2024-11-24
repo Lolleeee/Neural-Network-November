@@ -1,0 +1,415 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{lipsum}
+\usepackage{multicol}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\usepackage[left=2.00cm, right=2.00cm, top=2.00cm, bottom=2.00cm]{geometry}
+
+\title{AN2DL Reports Template}
+
+\begin{document}
+    
+    \begin{figure}[H]
+        \raggedright
+        \includegraphics[scale=0.4]{images/polimi.png} \hfill \includegraphics[scale=0.3]{images/airlab.jpeg}
+    \end{figure}
+    
+    \vspace{5mm}
+    
+    \begin{center}
+        % Select between First and Second
+        {\Large \textbf{ANNDL - First Homework Report}}\\
+        \vspace{2mm}
+        % Change with your Team Name
+        {\Large \textbf{Neural Network November}}\\
+        \vspace{2mm}
+        % Team Members Information
+        {\large Bettiati Matteo,}
+        {\large Bianchi Lorenzo,}
+        {\large Ostidich Francesco}\\
+        \vspace{2mm}
+        % Codabench Nicknames
+        {betti,}
+        {lolly,}
+        {kello}\\
+        \vspace{2mm}
+        % Matriculation Numbers
+        {258730,}
+        {259946,}
+        {259863}\\
+        \vspace{5mm}
+        \today
+    \end{center}   
+    \vspace{5mm}
+    
+    \begin{multicols}{2}
+
+        \section{Introduction}
+        
+        The challenge involves developing a neural network model for multiclass classification on a dataset of blood cell images.
+        
+        Our initial approach was to inspect the dataset to understand the nature of the images we would be working with. 
+        During this process, we identified and removed several outlier images, to ensure the quality and consistency of data. 
+        We also noticed that the number of images per class was not equal, therefore we exploited augmentation in order to make the dataset classes balanced.
+        
+        Given the relatively small size of the dataset given, we decided to initially approach the problem using transfer learning with a pre-trained model.
+        To balance computational efficiency and accuracy, we firstly selected small base models.
+        Eventually, we selected other models that were better suited to our purpose, incorporating fine-tuning to further enhance our performance.
+        
+        \section{Operations on dataset}
+        The raw dataset consists of total of 13759 images designed for the classification of different types of blood cells. Each image is labeled with one of eight classes, representing various blood cell types: Basophil, Eosinophil, Erythroblast, Immature granulocytes, Lymphocyte, Monocyte, Neutrophil and Platelet.
+        
+        Images size is 96x96, color space is RGB (3 channels), with \textit{uint8} data type.
+        
+        \subsection{Exploratory Data Analysis}
+        The first step in a good machine learning pipeline is exploratory data analysis (EDA).
+        To perform EDA, we plotted a grid sorted by class, which allowed us to identify two types of outliers.
+        The first was a repeated image containing a watermark of Shrek that appeared across multiple classes. 
+        The second was a repeated image featuring a watermark of Rickroll in the Monocyte class.
+        Both outliers were easily removed, as they were identical images repeated without variations, making them straightforward to detect.
+        Those images are shown here below.
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.15\textwidth]{images/outlier1.png}
+            \includegraphics[width=0.15\textwidth]{images/outlier2.png}
+            \caption{\small Rickroll and Shrek Outliers}
+        \end{figure}
+        
+        
+        An analysis of class distribution revealed a mildly severe class imbalance. To address this issue, we employed image duplication and data augmentation to ensure more balanced representation across classes.
+        
+        Additionally, we identified some ambiguously labeled images, such as the ones here below. Since there were no clearly mislabeled samples and considering the overall dataset size, we opted to retain these ambiguous images. This decision was made to preserve inherent diversity and sparsity in the dataset, which can contribute to the robustness of the model.
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.15\textwidth]{images/ambiguous1.png}
+            \includegraphics[width=0.15\textwidth]{images/ambiguous2.png}
+            \caption{\small Ambiguous samples n°1 and n°2}
+        \end{figure}
+        
+        
+        \subsection{Preprocessing data}
+        
+        Given the class imbalance in the dataset, we initially provided the \textit{class\_weights} argument to the \textit{model.fit()} method to dynamically adjust the loss contributions of each class. After balancing the dataset through sample duplication and data augmentation, we found that the impact of class weighting diminished, making it unnecessary for the final model configuration.
+        
+        \subsection{Data augmentation}
+        
+        Data augmentation has been a paramount stage which influenced greatly the performance of the model.
+        The progressive refinement of the pipeline lead to 3 main iterations of data augmentation pipeline.
+        All of which handled class unbalance and performed data splitting either by custom functions or using \textit{train\_test\_split} by \textit{scikit\-learn}.
+        % FIXME da che libreria sono importate
+        
+        In the first place, 150 images per class were set aside as a test set, which was further augmented to ensure more robust and reliable accuracy in evaluating the trained models.
+        
+        \subsubsection{Initial augmentation}
+        
+        The first round of augmentation was relatively simple compared to the subsequent iterations.
+        It included the following functions, each applied with random intensity:
+        
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{5pt}
+            \caption{List of Random Augmentations used}
+            \begin{tabular}{|c|}
+                \hline
+                random flip \\
+                \hline
+                random rotation \\
+                \hline
+                random brightness \\
+                \hline
+                random contrast \\
+                \hline
+                random stretch \\
+                \hline
+                random hue \\
+                \hline
+                random blur \\
+                \hline
+                random saturation \\
+                \hline
+            \end{tabular}
+            \label{tb:RandomTransforms2}
+        \end{table}
+        
+        
+        Both original and augmented images were included in this dataset. 
+        However, care was taken to ensure that different versions of the same image were not included in both the training and validation sets.
+        Each image was augmented multiple times to reach the quota of 2,500 elements per class.
+        
+        \subsubsection{Static augmentation}
+        
+        The second round utilized additional functions to achieve a higher level of augmentation. 
+        The following functions were used:
+
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{5pt}
+            \caption{List of Random Augmentations used}
+            \begin{tabular}{|c|}
+                \hline
+                random flip \\
+                \hline
+                random rotation \\
+                \hline
+                random brightness \\
+                \hline
+                random contrast \\
+                \hline
+                random stretch \\
+                \hline
+                random hue \\
+                \hline
+                random blur \\
+                \hline
+                random saturation \\
+                \hline
+                random grid mask \\
+                \hline
+                random colore degeneration \\
+                \hline
+                random cutout \\
+                \hline
+                random saturation \\
+                \hline
+                random shear \\
+                \hline
+            \end{tabular}
+            \label{tb:RandomTransforms2}
+        \end{table}
+        
+        A random selection of a random size of functions, each with a random intensity, was applied on each augmented image.
+        Original images were excluded from the dataset at this stage. 
+        Each image was augmented as many times as to reach 3,000 elements per class.
+        
+        For the final submissions, the best models trained on this dataset were retrained using a dataset with the same augmentation level, now including all test set images. 
+        Additionally, the number of elements per class was increased to 5,000.
+        
+        \subsubsection{Dynamic augmentation}
+        
+        The third approach, which was ultimately used in the final submission model, began by balancing the label distribution.
+        This was achieved by duplicating the underrepresented classes just enough to match the number of samples in the largest class.
+        The entire dataset was then split and fed into a \textit{TensorFlow Dataset} class, which managed the batch size, shuffling, and mapping of the augmentation pipeline.
+        
+        This approach made the augmentation process dynamic rather than static, as augmentations were applied in real-time during runtime. 
+        By handling augmentations dynamically, the model was exposed to a broader variety of augmented samples, enhancing generalization and reducing the risk of overfitting.
+        
+        The augmentation has been done through the use of the following \textit{keras\_cv} library augmentation layers:
+
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{5pt}
+            \caption{List of Augmentation layers used}
+            \begin{tabular}{|c|}
+                \hline
+                Augmix layer \\
+                \hline
+                RandomZoom layer \\
+                \hline
+                GridMask layer \\
+                \hline
+                RandAugment layer \\
+                \hline
+                AutoContrast layer \\
+                \hline
+            \end{tabular}
+            \label{tb:AugLayers}
+        \end{table}
+        
+        All of these layers were mapped using \textit{RandomAugmentationPipeline} from \textit{keras\_cv}.
+        
+        However, this method was adopted only as a last resort, as it significantly slowed down the training process, even though it was a necessary step to achieve the final performance.
+        
+        \section{Model experiments}
+        
+        Each team member began by selecting a pre-trained model, and while tweaking hyperparameters and top layers structure, we started to look for the best resulting ones to use.
+        
+        We started with relatively small models, like \textit{MobileNetV2}, a model known for its favorable trade-off between parameter count and accuracy, as the foundation for our experiments, to leverage fast training and less overfitting risk given the small dataset.
+        
+        Following this initial setup, we proceeded to design the top layers architecture. 
+        Overall, while the specific structures varied slightly between attempts, the core design remained consistent.
+        
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{5pt}
+            \begin{tabular}{|c|}
+                \hline
+                \textbf{Layer type} \\ \hline
+                Input layer \\ \hline
+                Pre-trained base model \\ \hline
+                Global average pooling 2D \\ \hline
+                Normalization (Group or Batch) \\ \hline
+                Dropout (0.2 to 0.4) \\ \hline
+                Dense (128 to 1024 neurons, ReLU or GeLU) \\ \hline
+                Normalization (Group or Batch) \\ \hline
+                Dropout (0.2 to 0.4) \\ \hline
+                Dense (64 to 512, ReLU or GeLU) \\ \hline
+                Normalization (Group or Batch) \\ \hline
+                Dropout (0.2 to 0.4) \\ \hline
+                Output layer \\ \hline
+            \end{tabular}
+        \end{table}
+        
+        For each dense layer we experimented also with kernel regularizers, with an average value of 1e-3.
+        
+        In the hyperparameter tuning section you can find all the values that have been used. By the end we tried a wide range for all parameters as choices like dataset size, complexity, model size and optimizers varied a lot through the experiments.
+        Here after a recap with the most used ones.
+        
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{5pt}
+            \begin{tabular}{|c|c|c|}
+                \hline
+                \textbf{Parameter} & \textbf{Pre-training} & \textbf{Fine tuning} \\ \hline
+                Learning rate & 1e-3 to 1e-4 & 1e-5 to 1e-6 \\ \hline
+                Weight decay & 1e-1 to 1e-3 & 1e-1 to 1e-3 \\ \hline
+                Epochs & 10 to 20 & 20 to 30 \\ \hline
+                Batch size & 32 to 512 & 32 to 512 \\ \hline
+            \end{tabular}
+        \end{table}
+        
+        We also experimented with two optimizers, \textit{Lion} and \textit{AdamW}, tuning their hyperparameters appropriately for each. Generally, \textit{Lion} performed best with a learning rate on the lower end of the specified range and a weight decay on the higher end, while \textit{AdamW} tended to favor a higher learning rate and a lower weight decay.
+        
+        \subsection{Transfer learning}
+        
+        We structured the transfer learning process into two phases: the first phase focused on training the top layers, followed by a fine-tuning phase.
+        
+        The first phase is the one which we mainly used to tune the top layers architecture and parameters.
+        
+        To enhance training efficiency, we incorporated callbacks such as early stopping, learning rate schedulers, and checkpoints.
+        
+        The training was performed using Colab and Kaggle GPUs. To accelerate the process, we utilized mixed precision and full RAM dataset loading, while if needed, employing \textit{TensorFlow Dataset} class to optimize RAM usage and address resource limitations.
+        
+        \subsection{Fine tuning}
+        
+        After achieving a plateau in performance during the top layer training phase, we transitioned to fine tuning. 
+        This process involved unfreezing layers of the base model and adjusting LR to a lower value, allowing it to adjust weights to better fit the specific patterns in our dataset. 
+        Fine-tuning permitted more targeted adjustments, leveraging the general features recognition that had been learned during the top layer pre-training phase, while adapting to the nuances of our data. In the final models, we implemented the functionality of keeping normalization layers frozen to reduce model instability when unfreezing other layers, in line with Keras transfer learning best practices.
+        
+        Initially, we used to unfroze all layers at once. 
+        However, we later adopted a more gradual and widely recommended approach, unfreezing layers incrementally. 
+        Gradual unfreezing helps preventing the pre-trained model from completely overwriting its previously learned representations, preserving useful features while allowing adaptation. Unfreezing all layers at once can lead to catastrophic forgettings, where the model looses valuable general knowledge obtained from pre-training.
+        This gradual approach also reduces the risk of overfitting, as early layers (which often capture fundamental features like edges and textures) remain relatively stable during the initial stages of fine tuning.
+        
+        \section{Comparison overview}
+        
+        The first model used wes tested and trained on the first augmented datasets.
+        Later on we switched to new augmented datasets. 
+        Some models were anyway been discard already. 
+        For this reason, some values may be misleading.
+        
+        \subsection{Base model evaluation}
+        
+        Initially, we selected a set of pre-trained models to evaluate as foundations for our end-goal model.
+        Below, we summarize the key metrics observed during this evaluation phase, which ultimately led us to focus on the \textit{MobileNetV2}, \textit{EfficientNetV2M}, and \textit{ConvNeXt} models.
+        
+        The reported model accuracies correspond to the local test accuracy and the Condabench development phase accuracy, each obtained using a customized top layer structure.  
+        \begin{table}[H]
+            \centering
+            \setlength{\tabcolsep}{4pt}
+            \small
+            \begin{tabular}{|c|c|c|}
+                \hline
+
+                \textbf{Model Name} & \textbf{Local Accuracy} & \textbf{Online Accuracy} \\ \hline
+                \hline
+                Xception            &  &  \\ \hline
+                ResNet152V2         & 0.70 & 0.92 \\ \hline
+                InceptionV3         &  & 0.90 \\ \hline
+                \multicolumn{3}{|c|}{\textbf{Middle Stage Models}} \\ \hline
+                InceptionResNetV2   &  &  \\ \hline
+                MobileNetV2         & 0.5102 & 0.9151 \\ \hline
+                DenseNet201         & 0.78 & 0.91 \\ \hline
+                \multicolumn{3}{|c|}{\textbf{Late Stage Models}} \\ \hline
+                EfficientNetB4      & 0.7084 & 0.8809 \\ \hline
+                EfficientNetV2S     & 0.6898 & 0.9321 \\ \hline
+                EfficientNetV2M     &  &  \\ \hline
+            \end{tabular}
+        \end{table}
+        %FIXME la lasciamo bucata questa tabella? e le convnext non le facciamo vedere qua dato che poi le abbiamo scelte?
+        % Nono l'ho modificata, e dovremmo decidere quali modelli fare vedere, no buchi assolutamente. Piuttosto ci inventiamo cose o cambiamo il modello da mettere
+        
+        \subsection{Hyperparameter tuning}
+        
+        To identify the best-performing model parameters, we conducted an extensive series of training test runs to determine which configuration achieved the highest accuracy on the local test set. 
+        Ultimately, the final model was obtained through a different approach using alternative parameters.
+        However, the prior hyperparameter tuning played a crucial role in setting up the final training session by providing valuable parameter ranges to guide the process.
+        
+        Below is a table summarizing the parameter values used in each experiment.
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{reports/images/hyperparameter_tuning.pdf}
+        \end{figure}
+        
+        \section{Final model}
+        
+        For our final submission model, we achieved the best performance by utilizing the previously described dynamical data augmentation technique.
+        The model was trained with a batch size of 512, a learning rate of 1e-3, a weight decay of 1e-4, and the AdamW optimizer.
+        The model architecture is summarized in the following table:
+        
+        \begin{table}[H]
+            \centering
+            \small
+            \begin{tabular}{|l|p{3.9cm}|}
+                \hline
+                \textbf{Layer} & \textbf{Description} \\ \hline
+                Input layer & \texttt{input\_shape} \\ \hline
+                Pre-trained base model & \texttt{convnext\_tiny} \\ \hline
+                Global average pooling 2D & \texttt{GlobalAveragePooling2D} \\ \hline
+                Normalization 1 & \texttt{groups=32, axis=-1} \\ \hline
+                Dropout 1 & \texttt{p=0.2} \\ \hline
+                Dense 1 & \texttt{512, act='gelu', kernel\_reg=l2(0.001)} \\ \hline
+                Normalization 2 & \texttt{groups=32, axis=-1} \\ \hline
+                Dropout 2 & \texttt{p=0.2} \\ \hline
+                Dense 2 & \texttt{128, act='gelu', kernel\_reg=l2(0.001)} \\ \hline
+                Normalization 3 & \texttt{groups=32, axis=-1} \\ \hline
+                Output layer & \texttt{num\_classes, act='softmax'} \\ \hline
+            \end{tabular}
+        \end{table}
+        
+        This model achieved a end top-layers training validation set accuracy of \textbf{81\%}.
+        
+        \subsection{Fine tuning approach}
+        
+        The fine-tuning was performed unconventionally by unfreezing the entire model in a single step.
+        Typically, fine-tuning involves progressively unfreezing layers to prevent large weight changes early on.
+        However, in this case, unfreezing the entire model at once allowed for simultaneous adaptation of all layers, enabling faster convergence, reduced overfitting, and greater flexibility in learning complex patterns tailored to the target task, which in the end increased the accuracy and generalization capacity.
+        
+        The history of the fine-tuning process is depicted in the following graphs.
+        
+        \begin{figure}[h!]
+            \centering
+            \includegraphics[width=0.5\textwidth]{images/final_accuracy.png}
+            \includegraphics[width=0.5\textwidth]
+            {images/final_loss.png}
+        \end{figure}
+        
+        The submission of this final model made us able to achieve a final local accuracy of \textbf{96\%} and an online one of \textbf{92\%}
+        
+        \section{Contributions}
+        
+        All the members of the team contributed equally to the project. 
+        Here is a list of the main work tasks to which that each member contributed the most.
+        
+        \begin{itemize}
+            \item Bettiati helped with the setup of the work environment, training and testing new models, and fine tuning the parameters in order to find the best performing ones.
+            \item Bianchi worked on data, by cleaning the dataset and providing the final dynamic augmentation used for the final model, while helping with the models training.
+            \item Ostidich worked on the initial data augmentation, for then focussing on the hyperparameter tuning and testing process.
+        \end{itemize}
+        
+        \bibliography{references}
+        \bibliographystyle{abbrv}
+        
+    \end{multicols}
+\end{document}
+        
