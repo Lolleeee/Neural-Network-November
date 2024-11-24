@@ -264,7 +264,7 @@ The training was performed using Colab and Kaggle GPUs. To accelerate the proces
 
 After achieving a plateau in performance during the top layer training phase, we transitioned to fine tuning. 
 This process involved unfreezing layers of the base model and adjusting LR to a lower value, allowing it to adjust weights to better fit the specific patterns in our dataset. 
-Fine-tuning permitted more targeted adjustments, leveraging the general features recognition that had been learned during the top layer pre-training phase, while adapting to the nuances of our data.
+Fine-tuning permitted more targeted adjustments, leveraging the general features recognition that had been learned during the top layer pre-training phase, while adapting to the nuances of our data. In the final models, we implemented the functionality of keeping normalization layers frozen to reduce model instability when unfreezing other layers, in line with Keras transfer learning best practices.
 
 Initially, we used to unfroze all layers at once. 
 However, we later adopted a more gradual and widely recommended approach, unfreezing layers incrementally. 
@@ -361,6 +361,7 @@ The history of the fine-tuning process is depicted in the following graphs.
 \begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth]{images/final_model_history.png}
+
 \end{figure}
 
 The submission of this final model made us able to achieve a final local accuracy of \textbf{98\%} and an online one of \textbf{92\%}
