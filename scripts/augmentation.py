@@ -9,7 +9,7 @@ from IPython.display import display, clear_output
 
 def augment(image):
     """
-    Given an image, using `augment(image)` will return a new image 
+    Given an image, using `augment(image)` will return a new image
     that is the augmentation of the one in input.
     """
 
@@ -27,15 +27,15 @@ def augment(image):
         tfkl.RandomBrightness(0.2, value_range=(0,1)),
         kcv.layers.RandomHue(value_range=(0, 1), factor=1.0),
         kcv.layers.AutoContrast(value_range=(0, 1)),
-        kcv.layers.AugMix(value_range=(0, 1)),
         kcv.layers.GridMask(),
         kcv.layers.RandomColorDegeneration(factor=1.0),
         kcv.layers.RandomCutout(width_factor=0.5, height_factor=0.5),
         kcv.layers.RandomSaturation(factor=(0.2, 0.8)),
         kcv.layers.RandomShear(x_factor=0.5, y_factor=0.5),
-        # kcv.layers.RandAugment(value_range=(0, 1)), # maybe this is too much
+        # kcv.layers.AugMix(value_range=(0, 1)),
+        # kcv.layers.RandAugment(value_range=(0, 1)),
     ]
-    
+
     img_tf32 = tf.image.convert_image_dtype(image, dtype=tf.float32)
     subset = random.sample(augmentation_types, random.randint(1, len(augmentation_types)))
     for type in subset:
@@ -45,7 +45,7 @@ def augment(image):
 
 def augment_set(data, surplus=1, top=-1):
     """
-    Given a dataset, using `augment_set(data)` will return a 
+    Given a dataset, using `augment_set(data)` will return a
     new balanced dataset which
     - does not contains the data of the input dataset,
     - has all the classes balanced,
@@ -73,7 +73,7 @@ def augment_set(data, surplus=1, top=-1):
         roof = int(counts.max() * surplus)
     else:
         roof = top
-        
+
     # Get indices for each label (indices[label][index])
     indices = [np.where(labels.flatten() == i)[0] for i in range(classes)]
 
@@ -85,7 +85,7 @@ def augment_set(data, surplus=1, top=-1):
     for label, count in enumerate(counts):
         for i, idx in enumerate(indices[label]):
             image = images[idx]
-            
+
             # Augment image
             for _ in range(roof // count + (1 if i < roof % count else 0)):
                 new_images.append(augment(image))
