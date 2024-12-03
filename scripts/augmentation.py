@@ -144,7 +144,7 @@ def masked_augment(image, mask):
     new_msk = np.array(msk_tf64.numpy(), dtype=np.float64)
     return new_img, new_msk
 
-def augment_set(data, surplus=1, top=-1):
+def augment_masked_set(data, surplus=1, top=-1):
     """
     Given a dataset, using `augment_set(data)` will return a
     new balanced dataset which

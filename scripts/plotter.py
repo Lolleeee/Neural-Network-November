@@ -1,21 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_image(*images):
-    """
-    Images are plotted horizontally.
-    One or many images can be passed as arguments.
-    Usage:
-    - `plot_image(image)`
-    - `plot_image(image, augmented_image)`
-    """
-    n = len(images)
-    fig, axes = plt.subplots(1, n, figsize=(n * 3, 3))
-    for ax, image in zip(axes, images):
-        ax.imshow(image)
-        ax.axis('off')
-    plt.show()
-
 def plot_distribution(*datas):
     """
     Graphs are plotted horizontally.
@@ -39,6 +24,21 @@ def plot_distribution(*datas):
         ax.set_xlabel("Label")
         ax.set_xticklabels([i for i in range(classes)])
     plt.tight_layout()
+    plt.show()
+
+def plot_image(*images):
+    """
+    Images are plotted horizontally.
+    One or many images can be passed as arguments.
+    Usage:
+    - `plot_image(image)`
+    - `plot_image(image, augmented_image)`
+    """
+    n = len(images)
+    fig, axes = plt.subplots(1, n, figsize=(n * 3, 3))
+    for ax, image in zip(axes, images):
+        ax.imshow(image)
+        ax.axis('off')
     plt.show()
 
 def plot_images(images, labels, row=8):
@@ -88,3 +88,4 @@ def plot_masked_images(images, masks, row=8):
     last_images = [(images[i], masks[i]) for i in range(last - row, last)]
     plot_masked_image(*first_images)
     plot_masked_image(*last_images)
+
