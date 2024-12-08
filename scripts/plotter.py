@@ -36,6 +36,8 @@ def plot_image(*images):
     """
     n = len(images)
     fig, axes = plt.subplots(1, n, figsize=(n * 3, 3))
+    if n == 1:
+        axes = [axes]
     for ax, image in zip(axes, images):
         ax.imshow(image)
         ax.axis('off')
@@ -56,7 +58,7 @@ def plot_images(images, labels, row=8):
         plot_image(*images[indices[:row]])
         plot_image(*images[indices[-row:]])
 
-def plot_masked_image(*images):
+def plot_masked_image(*images, mask_unique=4, mask_alpha=0.25):
     """
     Images are plotted horizontally.
     Images and masks are passed together as a tuple.
@@ -65,27 +67,41 @@ def plot_masked_image(*images):
     Usage:
     - `plot_masked_image((image, mask))`
     - `plot_masked_image((image, mask), (aug_image, aug_mask))`
+
+    The parameter `mask_unique` is used to set the
+    number of values on which the mask pixels are
+    normalized on (e.g. mask_unique=4).
+
+    The parameter `mask_alpha` is used to set the
+    alpha value of the mask, which is applied on
+    the image (e.g. mask_alpha=0.25).
     """
     n = len(images)
-    fig, axes = plt.subplots(1, n, figsize=(n * 3, 3))
+    fig, axes = plt.subplots(1, n, figsize=(n * 4, 4))
+    if n == 1:
+        axes = [axes]
     for ax, pair in zip(axes, images):
-        image = (pair[0] + pair[1]) / 2.0
-        ax.imshow(image)
+        image, mask = pair
+        image = (image - np.min(image)) / (np.max(image) - np.min(image))
+        normalized_mask = mask / mask_unique
+        blended_image = image * (1-mask_alpha) + normalized_mask * mask_alpha
+        ax.imshow(blended_image, cmap='gray')
+        ax.imshow(normalized_mask, cmap='viridis', alpha=mask_alpha)
         ax.axis('off')
+    plt.tight_layout()
     plt.show()
 
-def plot_masked_images(images, masks, row=8):
+def plot_masked_images(images, masks, row=4):
     """
     Initial images and final images of the dataset are
     plotted horizontally, with masks applied to the
     image with same index.
     Usage:
     - `plot_masked_images(images, labels)`
-    - `plot_masked_images(images, labels, row=8)`
+    - `plot_masked_images(images, labels, row=4)`
     """
     last = len(images)
     first_images = [(images[i], masks[i]) for i in range(row)]
     last_images = [(images[i], masks[i]) for i in range(last - row, last)]
     plot_masked_image(*first_images)
     plot_masked_image(*last_images)
-
