@@ -187,6 +187,10 @@ def augment_masked_set(data, luck_div = 1.3):
     tot = len(labels)
     for i, (image, label) in enumerate(zip(images, labels)):
 
+        # Print progress
+        clear_output(wait=True)
+        print(f"Augmenting image {i+1}/{tot}")
+
         # Append original image
         new_images.append(image)
         new_labels.append(label)
@@ -209,13 +213,10 @@ def augment_masked_set(data, luck_div = 1.3):
             sampled = np.random.random()
             prob = prob / luck_div
 
-            # Print progress
-            clear_output(wait=True)
-            print(f"Augmenting image {i+1}/{tot}")
-
     # Convert to numpy arrays for saving
     new_images = np.array(new_images)
     new_labels = np.array(new_labels)
 
     # Return a dictionary with the same structure as input data
     return {'images': new_images, 'labels': new_labels}
+
