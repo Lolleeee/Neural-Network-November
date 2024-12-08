@@ -5,8 +5,8 @@ import numpy as np
 import random
 import keras_cv as kcv
 import cv2
-import albumentations as alb
-from albumentations.core.transforms_interface import ImageOnlyTransform
+import scipy.ndimage as ndimage
+import skimage.transform as transform
 from IPython.display import display, clear_output
 
 def augment(image):
@@ -109,88 +109,109 @@ def masked_augment(image, mask):
     """
     Given an image, using `masked_augment(image, mask)` will return a new pair
     image/mask that are the augmentation of the ones in input.
-    Function returns float64 images.
     """
-    # List of augmentation functions that are applied to the image
-    aug_both = [
-        alb.Compose([alb.RandomFlip(p=0.75)], additional_targets={'mask': 'mask'}),
-        alb.Compose([alb.IAAAffine(shear=20, mode='reflect')], additional_targets={'mask': 'mask'}),
-        alb.Compose([alb.GridDistortion(p=0.75)], additional_targets={'mask': 'mask'}),
-        alb.Compose([alb.Cutout(num_holes=5, max_h_size=20, max_w_size=20, p=0.75)], additional_targets={'mask': 'mask'}),
-    ]
-    aug_img = [
-        tfkl.RandomBrightness(0.2, value_range=(0,1)),
-        kcv.layers.AutoContrast(value_range=(0, 1)),
-    ]
-    aug_msk = [
-    ]
 
-    img_tf32 = tf.image.convert_image_dtype(image, dtype=tf.float32)
-    msk_tf32 = tf.image.convert_image_dtype(mask, dtype=tf.float32)
+    def random_flip(image, mask, p_horizontal=0.5, p_vertical=0.5):
+        if np.random.random() < p_horizontal:
+            image = np.fliplr(image)
+            mask = np.fliplr(mask)
+        if np.random.random() < p_vertical:
+            image = np.flipud(image)
+            mask = np.flipud(mask)
+        return image, mask
 
-    subset = random.sample(aug_both, random.randint(1, len(aug_both)))
-    for type in subset:
-        img_tf32, msk_tf32 = type(img_tf32, msk_tf32)
-    subset = random.sample(aug_img, random.randint(1, len(aug_img)))
-    for type in subset:
-        img_tf32 = type(img_tf32)
-    subset = random.sample(aug_msk, random.randint(1, len(aug_msk)))
-    for type in subset:
-        msk_tf32 = type(msk_tf32)
+    def random_brightness_contrast(image, brightness_range=(-50, 50), contrast_range=(0.5, 1.5)):
+        image = image.astype(np.float32)
+        brightness = np.random.uniform(brightness_range[0], brightness_range[1])
+        image_bright = image + brightness
+        contrast = np.random.uniform(contrast_range[0], contrast_range[1])
+        image_contrast = (image_bright - np.mean(image_bright)) * contrast + np.mean(image_bright)
+        return np.clip(image_contrast, 0, 255).astype(np.uint8)
 
-    img_tf64 = tf.image.convert_image_dtype(img_tf32, dtype=tf.float64)
-    msk_tf64 = tf.image.convert_image_dtype(msk_tf32, dtype=tf.float64)
-    new_img = np.array(img_tf64.numpy(), dtype=np.float64)
-    new_msk = np.array(msk_tf64.numpy(), dtype=np.float64)
-    return new_img, new_msk
+    def random_gaussian_noise(image, mean=0, std_range=(1, 5)):
+        image = image.astype(np.float32)
+        std = np.random.uniform(std_range[0], std_range[1])
+        noise = np.random.normal(mean, std, image.shape)
+        noisy_image = image + noise
+        return np.clip(noisy_image, 0, 255).astype(np.uint8)
 
-def augment_masked_set(data, surplus=1, top=-1):
+    def random_elastic_deformation(image, mask, alpha=50, sigma=5):
+        image_float = image.astype(np.float32)
+        mask_float = mask.astype(np.float32)
+        shape = image.shape
+        dx = ndimage.gaussian_filter((np.random.rand(*shape) * 2 - 1), sigma) * alpha
+        dy = ndimage.gaussian_filter((np.random.rand(*shape) * 2 - 1), sigma) * alpha
+        x, y = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]))
+        deformed_x = x + dx
+        deformed_y = y + dy
+        deformed_image = ndimage.map_coordinates(image_float, [deformed_y, deformed_x], order=1, mode='nearest')
+        deformed_mask = ndimage.map_coordinates(mask_float, [deformed_y, deformed_x], order=1, mode='nearest')
+        return np.clip(deformed_image, 0, 255).astype(np.uint8), np.clip(deformed_mask, 0, 255).astype(np.uint8)
+
+    aug_image, aug_mask = image.copy(), mask.copy()
+
+    aug_image, aug_mask = random_flip(aug_image, aug_mask)
+    aug_image = random_brightness_contrast(aug_image)
+    aug_image = random_gaussian_noise(aug_image)
+    aug_image, aug_mask = random_elastic_deformation(aug_image, aug_mask)
+
+    return aug_image, aug_mask
+
+def augment_masked_set(data, luck_div = 1.3):
     """
-    Given a dataset, using `augment_set(data)` will return a
-    new balanced dataset which
-    - does not contains the data of the input dataset,
-    - contains only augmented images,
+    Given a dataset, using `augment_masked_set(data)` will return a
+    new dataset which
+    - contains also the data of the input dataset,
+    - helps with dataset balance by augmenting scarse images more often,
     - images coming from the same origin are consequent.
 
-    The argument `surplus` is multiplied to the number of images
-    for determining how many images will be augmented in the end
-    (e.g. `surplus=1.5`).
+    The parameter `luck_div` represents the divider value that is
+    multiplied to the augmentation probability on each round, after the
+    first, when augmenting the same image again (e.g `luck_div=1.3`).
 
-    The argument `top` directly sets the number of images
-    that are to be augmented in the end (e.g. `top=2000`).
-    If `top` is set, `surplus` is ignored.
     """
     # Retrieve images and labels from dataset
     images = data['images']
     labels = data['labels']
 
-    # Count how many images are there
-    count = len(labels)
+    # Find count of recurrencies of a class in each image
+    v = []
+    for label in labels:
+        v = np.append(v, np.unique(label))
+    v = v.astype(int)
+    counts = np.bincount(v)
 
-    # Set the desired number of images for the returned dataset
-    if top <= 0:
-        roof = int(count * surplus)
-    else:
-        roof = top
-
-    # Initialize lists for augmented dataset
+    # Build a new dataset with both original and augmented images
     new_images = []
     new_labels = []
+    tot = len(labels)
+    for i, (image, label) in enumerate(zip(images, labels)):
 
-    # Augment images to balance the dataset
-    for idx in range(count):
-        image = images[idx]
-        label = labels[idx]
+        # Append original image
+        new_images.append(image)
+        new_labels.append(label)
 
-        # Augment image
-        for _ in range(roof // count + (1 if idx < roof % count else 0)):
-            new_image, new_label = masked_augment(image, label)
-            new_images.append(new_image)
-            new_labels.append(new_label)
+        # Find class count in dataset of higher class in label
+        higher_class = np.max(label)
+        count = counts[higher_class]
 
-        # Print progress
-        clear_output(wait=True)
-        print(f"Augmenting image {idx+1}/{count}")
+        # Calculate probability of making an augmentation
+        prob = 1 - count / tot
+        sampled = np.random.random()
+        while sampled <= prob:
+            aug_image, aug_label = masked_augment(image, label)
+
+            # Append augmented image
+            new_images.append(aug_image)
+            new_labels.append(aug_label)
+
+            # Another round parameters
+            sampled = np.random.random()
+            prob = prob / luck_div
+
+            # Print progress
+            clear_output(wait=True)
+            print(f"Augmenting image {i+1}/{tot}")
 
     # Convert to numpy arrays for saving
     new_images = np.array(new_images)
@@ -198,4 +219,3 @@ def augment_masked_set(data, surplus=1, top=-1):
 
     # Return a dictionary with the same structure as input data
     return {'images': new_images, 'labels': new_labels}
-
