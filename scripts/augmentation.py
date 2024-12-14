@@ -157,7 +157,7 @@ def masked_augment(image, mask):
 
     return aug_image, aug_mask
 
-def augment_masked_set(data, luck_div = 1.3):
+def augment_masked_set(data, luck_div=-1):
     """
     Given a dataset, using `augment_masked_set(data)` will return a
     new dataset which
@@ -168,7 +168,8 @@ def augment_masked_set(data, luck_div = 1.3):
     The parameter `luck_div` represents the divider value that is
     multiplied to the augmentation probability on each round, after the
     first, when augmenting the same image again (e.g `luck_div=1.3`).
-
+    If `luck_div` is not set, then, on each iteration, the probability
+    is updated by multiplying it by itself.
     """
     # Retrieve images and labels from dataset
     images = data['images']
@@ -200,18 +201,13 @@ def augment_masked_set(data, luck_div = 1.3):
         count = counts[higher_class]
 
         # Calculate probability of making an augmentation
-        prob = 1 - count / tot
-        sampled = np.random.random()
-        while sampled <= prob:
+        times = tot // count
+        for _ in range(times):
             aug_image, aug_label = masked_augment(image, label)
 
             # Append augmented image
             new_images.append(aug_image)
             new_labels.append(aug_label)
-
-            # Another round parameters
-            sampled = np.random.random()
-            prob = prob / luck_div
 
     # Convert to numpy arrays for saving
     new_images = np.array(new_images)
