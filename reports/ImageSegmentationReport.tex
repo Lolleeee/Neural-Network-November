@@ -98,15 +98,21 @@
         To increase dataset diversity and improve generalization, we tried to apply random rotations, flips, scaling, cut mix, blur, elastic deformations, brightness and contrast to the images. 
         Different combinations of functions made the model perform differently: the augmentation pipeline has thus been taylored ad hoc, based on the best metrics we observed when training the models.
         In the end, to address the class imbalance, images containing class 4 were duplicated multiple times (approximately 15 to 20 times) until a more balanced dataset was achieved.
-        The main augmentation fuction we used in the end was cut mix, which created new samples by pasting patches from 2 to 4 other samples onto the existing images. 
+        After experimenting, the most impacting and used augmentation function was cut mix, which created new samples by pasting patches from 2 to 4 other samples onto the existing images. 
         This technique increased the dataset size to around 10,000 samples.
         To ensure robust model performance evaluation, the validation split was also augmented.
         Finally, the entire dataset was fed into the model through a data loader, which dynamically applied simple augmentations such as flipping and rotations during training.
         Augmentations helped the model handle variations in terrain orientation and spatial configuration.
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.45\textwidth]{reports/images/Augmented_image_mask.png}
+            \caption{\small Mid-training prediction}
+        \end{figure}
         
         \subsection{UNet architecture}
         
-        The model we used was a custom UNet model, utilizing an encoder-decoder structure with skip connections to preserve spatial information. 
+        The main model architecture used was a custom UNet model, utilizing an encoder-decoder structure with skip connections to preserve spatial information. 
         This architecture enabled the model to extract hierarchical features and make pixel-wise predictions. 
         The training we made was made almost every time on the augmented dataset.
 
@@ -121,7 +127,7 @@
         We experimented with various loss functions during the training phase.
         We started with a \textit{categorical cross-entropy}, for later exploring a \textit{dice loss} and a {mean intersection over union loss}.
         Moreover, we also opted for combining losses together hoping to find better compromises and therefore better results.
-        In the end, the \textit{focal loss} was the best scoring alternative; we also exploited the \textit{class weights} implementation of this loss function, which massively helped the model focus on smaller classes like {big rock} and improve both global and local segmentation accuracy.
+        In the end, the \textit{focal loss} was the best scoring alternative; we also exploited the \textit{class weights} implementation of this loss function, which massively helped the model focus on smaller classes like {big rock} while ignoring the background class and improving both global and local segmentation accuracy and MIOU.
         
         \section{Experiments}
         
@@ -136,13 +142,16 @@
         
         \subsection{Advanced architectures}
         
-        We also explored more advanced architectures.
-        One of those was a dual UNet model, which combined outputs from two parallel UNets.
-        Others were transformers architectures, which managed to capture long-range dependencies.
-        Additionally, we also incorporated residual blocks to improve gradient flow and prevent overfitting, enhancing the model learning capacity.
+        We also explored more advanced architectures. One such architecture was a dual UNet model, which combined the outputs of two parallel UNet networks. Another enhancement involved the incorporation of squeeze-and-excite blocks, which improve the model's ability to recalibrate channel-wise feature responses. We also experimented with transformer-based architectures, which excel at capturing long-range dependencies. Furthermore, residual blocks were integrated to improve gradient flow and prevent overfitting, ultimately boosting the model's learning capacity.
 
         \section{Conclusions}
+        \subsection{Final Model}
+        For the final submission, we employed a well-established and reliable architecture known as "Segformer." This model leverages the power of self-attention mechanisms to efficiently capture both local and global dependencies within the input data, which is particularly beneficial for segmentation tasks. Given the relatively small size of our dataset, we initially began with a lightweight configuration, progressively increasing the model complexity while carefully monitoring the risk of overfitting. This approach allowed us to balance model performance with generalization.
         
+        The model was trained using a 10,000-sample augmented training set and evaluated on a separate 1,000-sample augmented validation set, providing a more robust assessment of its performance. The optimizer used was AdamW with a weight decay of 1e-3 and gradient clipping set to a norm of 1.0, ensuring stable training. Due to the diverse nature of the augmented data, a batch size of 32 was selected to maintain a good trade-off between memory efficiency and model convergence. Callbacks like model checkpoints, early stopping and LRSchedulers were employed, leading to a training session of 100 epochs on average. 
+        
+        For the final iteration of Segformer, we utilized the 'timm\-regnetx\_160' encoder, with a depth of 5 and 256 channels in the decoder block. This choice of encoder was driven by its ability to balance model efficiency and expressive power, making it well-suited for the task at hand. The implementation of this model was facilitated by the Segmentation Models library\cite{qubvel2024}, which provides a framework for building segmentation networks.
+
         \subsection{Contribution}
 
         Experimentation and training tasks were carried out equally and coordinately by each team member.
