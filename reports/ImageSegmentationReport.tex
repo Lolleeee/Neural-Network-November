@@ -139,6 +139,28 @@
 
         Training was conducted on Colab\cite{colab2024} and Kaggle\cite{kaggle2024} GPUs
         The TensorFlow\cite{tensorflow2015} Keras\cite{keras2015} and PyTorch\cite{pytorch2019} frameworks were also utilized during model development and training.
+
+        To get an idea of the training metrics evolution, here after we present a table with the values corresponding to some models throughout the experimentation phase.
+
+        \begin{table}[H]
+            \centering
+            \small
+            \begin{tabular}{|c|c|c|}
+                \hline
+                \multicolumn{3}{|c|}{\textbf{Mean IoU}} \\ \hline
+                \textbf{Model Name} & \textbf{Local} & \textbf{Submission} \\ \hline
+                \multicolumn{3}{|c|}{\textbf{Early Stage Models}} \\ \hline
+                UNet & 0.43 & 0.44  \\ \hline
+                UNet ResNet34 & 0.60 & 0.43 \\ \hline
+                \multicolumn{3}{|c|}{\textbf{Middle Stage Models}} \\ \hline
+                UNet & 0.47 & 0.52 \\ \hline
+                UNet squeeze \& excitement & 0.66 & 0.57 \\ \hline
+                \multicolumn{3}{|c|}{\textbf{Late Stage Models}} \\ \hline
+                DeepLabV3Plus & 0.61 & 0.69 \\ \hline
+                SegFormer & 0.63 & \textbf{0.74} \\ \hline
+            \end{tabular}
+            \caption{Metrics throghout training}
+        \end{table}
         
         \subsection{Advanced architectures}
         
