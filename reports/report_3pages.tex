@@ -83,7 +83,7 @@
         
         Data augmentation played a crucial role in improving model performance. The pipeline was refined in three stages:
         
-        1. \textbf{Initial Augmentation}: Basic transformations (flip, rotation, brightness, contrast, hue, etc.) were applied, expanding the dataset to 2,500 images per class. A second round introduced additional functions (grid mask, color degeneration, cutout, shear), increasing the dataset to 3,000 images per class.
+        1. \textbf{Initial Augmentation}: Basic transformations (flip, rotation, brightness, contrast, hue, etc.) were applied, expanding the dataset to 2,500 images per class.
         
         2. \textbf{Refined Augmentation}: The second round introduced additional functions (grid mask, color degeneration, cutout, shear), Models were retrained on a larger dataset (5,000 images per class, including the augmented test set).
         
@@ -125,7 +125,7 @@
         
         For each dense layer we experimented also with kernel regularizers, with an average value of 1e-3.
         
-        In the hyperparameter tuning section you can find all the values that have been used. By the end we tried a wide range for all parameters as choices like dataset size, complexity, model size and optimizers varied a lot through the experiments.
+        By the end we tried a wide range for all parameters as choices like dataset size, complexity, model size and optimizers varied a lot through the experiments.
         Here after a recap with the most used ones.
         
         \begin{table}[H]
@@ -144,7 +144,7 @@
         
         We experimented with two optimizers, \textit{Lion} and \textit{AdamW}, tuning their hyperparameters for optimal performance. \textit{Lion} performed best with a low learning rate and high weight decay, while \textit{AdamW} favored a higher learning rate and lower weight decay.
 
-        Extensive training test runs were conducted to identify the best model parameters based on local test set accuracy. Although the final model used alternative parameters, the hyperparameter tuning provided valuable guidance, with detailed results available in the "\textit{hyperparameter\_tuning.pdf}" file.
+        Extensive training test runs were conducted to identify the best model parameters based on local test set accuracy. Although the final model used alternative parameters, the hyperparameter tuning provided valuable guidance, with detailed results available in the "\textit{misc/hyperparameter\_tuning.pdf}" file.
 
         \subsection{Transfer Learning}
         
