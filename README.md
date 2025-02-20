@@ -1,5 +1,5 @@
-# Neural-Network-November
 The Artificial Neural Network and Deep Learning course proposed two challenges.
+We participated as team "Neural Network November".
 
 ## Challenge 1 - Blood Cells
 <p align="center">
