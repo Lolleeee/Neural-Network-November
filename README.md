@@ -1,45 +1,25 @@
 # Neural-Network-November
-Homework 1 and 2 of Artificial Neural Network and Deep Learning course.
+The Artificial Neural Network and Deep Learning course proposed two challenges.
 
-## Homework 1
+## Challenge 1 - Blood Cells
+![Blood cell sample](images/blood-cell.png)
+This project focused on developing a neural network for multi-class classification of images representing eight distinct blood cell states. 
+The main challenges included addressing class imbalance, generalizing from a relatively small dataset, and ensuring accurate classification. 
+To tackle these, we conducted extensive exploratory data analysis (EDA) to identify and resolve outliers, ambiguities, and class imbalances. 
+A multi-stage data augmentation pipeline, culminating in dynamic augmentation during training, was employed to enhance model generalization.
+We adopted transfer learning, leveraging pretrained architectures to accelerate learning and adapt the models to the dataset’s specific features.
+Model optimization involved hyperparameter tuning, selective layer unfreezing, and mixed precision training. 
+Our final submission achieved a local accuracy of 96% and an online evaluation accuracy of 92%.
 
-### Overall description
-In this assignment, we will classify 96x96 RGB images of blood cells. 
-These images are categorized into eight classes, each representing a particular cell state. 
-This is a multi-class classification problem, so our goal is to assign the correct class label to each RGB image.
+## Challenge 2 - Mars Terrain
+![Mars terrain sample](images/mars-terrain.png)
+In this assignment we were provided with grayscale images of Mars terrain, where each pixel is categorized into one of five terrain classes. 
+This is a semantic segmentation problem, and our objective was to assign the correct class label to each pixel in the image. 
+To address this challenge, we analyzed the data, built a UNet model, and enhanced its architecture to improve segmentation accuracy.
+Several challenges arose during this task. 
+Firstly, the small image size limited the detail level, thus blurring class boundaries with varying terrain types.
+Class imbalance, with the background class dominating, hurted performance for underrepresented classes, i.e. big rocks. 
+Lastly, more generally, the Mars terrain complexity and irregular textures further complicated the model ability to generalize.
+In the end, we ranked second among nearly 300 participants.
 
-### Data:
-This dataset consists of images designed for the classification of different types of blood cells. 
-Each image is labeled with one of eight classes, representing various blood cell types such as basophils, neutrophils, and lymphocytes.
-
-**Dataset details**
-- Image Size: 96x96
-- Color Space: RGB (3 channels)
-- Input Shape: (96, 96, 3)
-- File Format: npz (Numpy archive)
-- Number of Classes: 8
-
-**Class Labels**
-- 0: Basophil
-- 1: Eosinophil
-- 2: Erythroblast
-- 3: Immature granulocytes
-- 4: Lymphocyte
-- 5: Monocyte
-- 6: Neutrophil
-- 7: Platelet
-
-**Dataset Structure**
-The training data is provided in the train_data.npz file, which contains:
-- images: A Numpy array of shape (13759, 96, 96, 3) containing the RGB images.
-- labels: A Numpy array of shape (13759,), with class values ranging from 0 to 7, corresponding to the classes listed above.
-
-## Terms and Conditions
-Participants in this competition must adhere to the following rules:
-- Compliance: All participants must ensure their submissions comply with the guidelines provided throughout the competition. Any violation may result in disqualification.
-- Originality: Submitted work must be original. Any form of plagiarism or unauthorized collaboration is strictly prohibited.
-- Evaluation: The evaluation criteria are defined by the course tutors and professors. The decisions made by them regarding the results, validity, and any concerns during the competition are final and binding.
-- Discretion: Course tutors and professors reserve the right to make decisions regarding any aspect of the competition, including but not limited to the evaluation process and the interpretation of rules.
-- Integrity: Participants are expected to maintain academic integrity and professionalism throughout the competition.
-
-By participating, entrants agree to these terms and acknowledge that all decisions by the course tutors and professors are final.
+###### Python code written by Francesco Ostidich, Lorenzo Bianchi, Matteo Bettiati
