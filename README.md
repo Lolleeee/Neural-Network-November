@@ -2,7 +2,7 @@
 The Artificial Neural Network and Deep Learning course proposed two challenges.
 
 ## Challenge 1 - Blood Cells
-![Blood cell sample](images/blood-cell.png)
+![Blood cell sample](images/blood-cell.jpg)
 This project focused on developing a neural network for multi-class classification of images representing eight distinct blood cell states. 
 The main challenges included addressing class imbalance, generalizing from a relatively small dataset, and ensuring accurate classification. 
 To tackle these, we conducted extensive exploratory data analysis (EDA) to identify and resolve outliers, ambiguities, and class imbalances. 
@@ -12,7 +12,7 @@ Model optimization involved hyperparameter tuning, selective layer unfreezing, a
 Our final submission achieved a local accuracy of 96% and an online evaluation accuracy of 92%.
 
 ## Challenge 2 - Mars Terrain
-![Mars terrain sample](images/mars-terrain.png)
+![Mars terrain sample](images/mars-terrain.jpg)
 In this assignment we were provided with grayscale images of Mars terrain, where each pixel is categorized into one of five terrain classes. 
 This is a semantic segmentation problem, and our objective was to assign the correct class label to each pixel in the image. 
 To address this challenge, we analyzed the data, built a UNet model, and enhanced its architecture to improve segmentation accuracy.
